@@ -1,5 +1,9 @@
 # Foldlings2
 
+A port of a previous iOS project to the web: [https://github.com/harquail/foldlings](https://github.com/harquail/foldlings)
+
+May or may not actually reach feature parity with the original.
+
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.0.3.
 
 ## Development server
