@@ -1,5 +1,7 @@
 # Foldlings2
 
+Online here: [https://harquail.github.io/foldlings2/](https://harquail.github.io/foldlings2/)!
+
 A port of a previous iOS project to the web: [https://github.com/harquail/foldlings](https://github.com/harquail/foldlings)
 
 May or may not actually reach feature parity with the original.
