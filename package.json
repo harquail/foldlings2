@@ -5,10 +5,11 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build --prod --base-href 'https://harquail.github.io/foldlings2/'",
+    "build": "ng build --env=prod --base-href='https://harquail.github.io/foldlings2/'",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "publish": "npm run build && ngh"
   },
   "private": true,
   "dependencies": {
