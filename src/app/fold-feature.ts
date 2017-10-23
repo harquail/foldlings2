@@ -1,4 +1,5 @@
 import { Edge } from "app/edge";
+import { Plane } from "app/plane";
 
 export class FoldFeature {
     public edges() {
@@ -8,7 +9,11 @@ export class FoldFeature {
     public folds() {
         return [];
     }
-
+    
+    public planes(): Plane[] {
+        return [];
+    }
+    
     public drivingFold?: Edge;
 
     public setDriver(fold: Edge){
@@ -18,5 +23,6 @@ export class FoldFeature {
     public spansFold(e: Edge) {
         return false;
     }
+
 
 }

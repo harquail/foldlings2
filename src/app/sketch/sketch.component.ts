@@ -4,6 +4,7 @@ import { BoxFold } from 'app/box-fold';
 import { Card } from 'app/card';
 import { Plane } from 'app/plane';
 import { Point } from 'app/edge';
+import * as _ from 'lodash';
 
 @Component({
   selector: 'app-sketch',
@@ -23,13 +24,9 @@ export class SketchComponent implements OnInit {
   public features() {
     let features = this.previousFeatures;
     if (this.currentFeature) {
-      features = [...features, this.currentFeature];
+      features = features.concat(this.currentFeature);
     }
     return features;
-  };
-
-  public planes(): Plane[] {
-    return [];
   };
 
   handleMouseDown(e: MouseEvent) {
@@ -49,8 +46,8 @@ export class SketchComponent implements OnInit {
       if (!this.currentFeature.drivingFold || !this.currentFeature.spansFold(this.currentFeature.drivingFold)) {
         delete this.currentFeature.drivingFold;
         // reversing previous features for now — will eventually split all the driving potential folds
-        outer: for (const feature of this.previousFeatures.reverse()) {
-            for (const fold of feature.folds()) {
+        outer: for (const feature of this.previousFeatures) {
+          for (const fold of feature.folds()) {
             if (this.currentFeature.spansFold(fold)) {
               this.currentFeature.setDriver(fold);
               break outer;
@@ -63,7 +60,6 @@ export class SketchComponent implements OnInit {
   }
 
   ngOnInit() {
-    console.error('meowr');
   }
 
 }
