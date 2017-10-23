@@ -3,3 +3,9 @@
     height: 800px;
     background-color: beige;
 }
+
+#threeD{
+    position: absolute;
+    left: 630px;
+    top: 30px;
+}

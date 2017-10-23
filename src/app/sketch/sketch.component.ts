@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FoldFeature } from 'app/fold-feature';
 import { BoxFold } from 'app/box-fold';
 import { Card } from 'app/card';
 import { Plane } from 'app/plane';
 import { Point } from 'app/edge';
 import * as _ from 'lodash';
+import { Sketch3d } from 'app/sketch/sketch3d';
 
 @Component({
   selector: 'app-sketch',
@@ -13,6 +14,11 @@ import * as _ from 'lodash';
 
 })
 export class SketchComponent implements OnInit {
+
+  @ViewChild('container') elementRef: ElementRef;
+  private container: HTMLElement;
+  private sketch3d: Sketch3d;
+
   private currentFeature?: BoxFold;
   private previousFeatures: FoldFeature[] = [];
 
@@ -60,6 +66,11 @@ export class SketchComponent implements OnInit {
   }
 
   ngOnInit() {
+    console.log(this.elementRef);
+    this.container = this.elementRef.nativeElement;
+    this.sketch3d = new Sketch3d(_.flatten(this.features()), this.container);
+    // this.sketch3d = new Sketch3d(_.flatten(this.features().map((feature) => { return feature.planes() })), this.container);
+    this.sketch3d.init();
   }
 
 }
