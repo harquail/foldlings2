@@ -1,48 +1,88 @@
-import { FoldFeature, Edge, Point } from "app/fold-feature";
+import { FoldFeature } from "app/fold-feature";
+import { Point, Edge, EdgeKind } from "app/edge";
 
 
 export class BoxFold extends FoldFeature {
     private start: Point;
     private end: Point;
-
-    private drivingFold = new Edge(new Point(0, 400), new Point(1000, 400));
-
+    private cachedEdges?: Edge[];
     public moveEnd(to: Point) {
-        this.end = to;
+        if (to != this.end) {
+            this.end = to;
+            delete this.cachedEdges;
+        }
     }
 
-    public edges() {
-
-        // make h0, h1, and h2 first.  Then s0, s1, s2, e0, e1, e2....
+    public edges(): Edge[] {
+        // make h0, and h2 first because they always exist.
+        let es = [];
+        if (this.cachedEdges) {
+            return this.cachedEdges
+        }
+        const h0 = new Edge(this.start, new Point(this.end.x, this.start.y), EdgeKind.Fold);
+        const h2 = new Edge(this.end, new Point(this.start.x, this.end.y), EdgeKind.Fold);
         //
         //                  h0
         //            S- - - - -
         //         s0 |         | e0
         //            |     h1  |
-        //            - - - - - -
+        //            - - -< - - 
         //         s1 |         | e1
         //     _ _ _ _|         |_ _ _ _ _ driving
         //            |         |
-        //         s2 |     h2  | e2
+        //            |     h2  | 
         //            - - - - - E
         //
 
-        // #TODO
-        
-        // otherwise, we only have 4 edges
-        //
-        //               h0
-        //            S------
-        //         s0 |      | e0
-        //            |      |
-        //            -------E
-        //               h2
-        const s0 = new Edge(this.start, new Point(this.start.x, this.end.y));
-        const h0 = new Edge(this.start, new Point(this.end.x, this.start.y));
-        const h2 = new Edge(this.end, new Point(this.start.x, this.end.y));
-        const e0 = new Edge(this.end, new Point(this.end.x, this.start.y));
-        const bisect = new Edge(this.start, this.end);
-        return [s0, h0, h2, e0, this.drivingFold];
+        // if box spans driving fold
+        if (this.drivingFold) {
+            const drivingY = this.drivingFold.start.y;
+            // h1 is translated by 
+            const offsetY = drivingY - this.start.y;
+            const h1 = new Edge(new Point(this.end.x, this.end.y - offsetY), new Point(this.start.x, this.end.y - offsetY), EdgeKind.Fold);
+            const e0 = new Edge(h0.end, h1.start);
+            const s0 = new Edge(h1.end, this.start);
+            const e1 = new Edge(h1.start, this.end);
+            const s1 = new Edge(h2.end, h1.end);
+            es.push(h0, e0, h1, s0, e1, h2, s1);
+        }
+        else {
+
+            // otherwise, we only have 4 edges
+            //
+            //               h0
+            //            S------
+            //         s0 |      | e0
+            //            |      |
+            //            -------E
+            //               h2
+            const s0 = new Edge(h2.end, this.start);
+            const e0 = new Edge(h0.end, this.end);
+            es.push(h0, e0, h2, s0);
+        }
+
+        this.cachedEdges = es;
+        return es;
+    }
+
+    public planes(){
+
+    }
+
+    public spansFold(e: Edge): boolean {
+        const minY = Math.min(this.start.y, this.end.y);
+        const maxY = Math.max(this.start.y, this.end.y);
+        const drivingY = e.start.y;
+
+        const minX = Math.min(this.start.x, this.end.x);
+        const maxX = Math.max(this.start.x, this.end.x);
+        const minDrivingX = Math.min(e.start.x, e.end.x);
+        const maxDrivingX = Math.max(e.start.x, e.end.x);
+        return minY < drivingY && maxY > drivingY && minDrivingX < minX && maxDrivingX > maxX;
+    }
+
+    public folds(): Edge[] {
+        return this.edges().filter((e) => { return e.kind == EdgeKind.Fold });
     }
 
     constructor(start: Point, end: Point) {
