@@ -72,6 +72,7 @@ export class SketchComponent implements OnInit {
     this.container = this.elementRef.nativeElement;
     this.sketch3d = new Sketch3d(_.flatten(this.features()), this.container);
     this.sketch3d.init();
+    this.sketch3d.addFeature(this.previousFeatures[0]);
   }
 
 }
