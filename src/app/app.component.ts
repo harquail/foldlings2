@@ -7,5 +7,6 @@ import { SketchComponent } from './sketch/sketch.component';
   styleUrls: ['./app.component.css'],  
 })
 export class AppComponent {
+  
   title = 'app works!';
 }

@@ -41,6 +41,7 @@ export class SketchComponent implements OnInit {
   }
 
   handleMouseUp(e: MouseEvent) {
+    this.sketch3d.addFeature(this.currentFeature);
     this.previousFeatures.push(this.currentFeature);
     delete this.currentFeature;
   }
@@ -55,6 +56,7 @@ export class SketchComponent implements OnInit {
         outer: for (const feature of this.previousFeatures) {
           for (const fold of feature.folds()) {
             if (this.currentFeature.spansFold(fold)) {
+              feature.addChild(this.currentFeature);
               this.currentFeature.setDriver(fold);
               break outer;
             }
@@ -69,7 +71,6 @@ export class SketchComponent implements OnInit {
     console.log(this.elementRef);
     this.container = this.elementRef.nativeElement;
     this.sketch3d = new Sketch3d(_.flatten(this.features()), this.container);
-    // this.sketch3d = new Sketch3d(_.flatten(this.features().map((feature) => { return feature.planes() })), this.container);
     this.sketch3d.init();
   }
 

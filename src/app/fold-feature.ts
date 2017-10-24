@@ -2,6 +2,8 @@ import { Edge } from "app/edge";
 import { Plane } from "app/plane";
 
 export class FoldFeature {
+    public children: FoldFeature[] = [];
+
     public edges() {
         return [];
     }
@@ -18,6 +20,10 @@ export class FoldFeature {
 
     public setDriver(fold: Edge){
         this.drivingFold = fold;
+    }
+
+    public addChild(feature: FoldFeature){
+        this.children.push(feature);
     }
 
     public spansFold(e: Edge) {

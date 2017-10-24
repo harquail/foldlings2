@@ -1,4 +1,5 @@
 import { Edge, Point } from "app/edge";
+import * as THREE from "three";
 
 export enum OrientationKind {
     Vertical,
@@ -6,15 +7,20 @@ export enum OrientationKind {
 }
 
 export class Plane {
+
     public orientation: OrientationKind;
     public points: Point[] = [];
-    public color: string;
-    private randomColor() {
+    public color: THREE.Color;
+    public svgColor(): string {
+        return `rgb(${this.color.r*255},${this.color.g*255},${this.color.b*255})`
+    }
+    private randomColor(): THREE.Color {
+
         switch (this.orientation) {
             case OrientationKind.Horizontal:
-                return `rgb(${this.randomBetween(240, 250)},${this.randomBetween(255, 255)},${this.randomBetween(255, 255)})`
+                return new THREE.Color(this.randomBetween(240, 250)/255, this.randomBetween(255, 255)/255, this.randomBetween(255, 255)/255);
             case OrientationKind.Vertical:
-                return `rgb(${this.randomBetween(255, 255)},${this.randomBetween(240, 250)},${this.randomBetween(255, 255)})`
+                return new THREE.Color(this.randomBetween(255, 255)/255, this.randomBetween(240, 250)/255, this.randomBetween(255, 255)/255);
         }
     }
     private randomBetween(min: number, max: number) {
