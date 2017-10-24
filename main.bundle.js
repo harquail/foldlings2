@@ -1,9 +1,9 @@
 webpackJsonp([1,4],{
 
-/***/ 141:
+/***/ 144:
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(28)(false);
+exports = module.exports = __webpack_require__(29)(false);
 // imports
 
 
@@ -18,15 +18,15 @@ module.exports = module.exports.toString();
 
 /***/ }),
 
-/***/ 142:
+/***/ 145:
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(28)(false);
+exports = module.exports = __webpack_require__(29)(false);
 // imports
 
 
 // module
-exports.push([module.i, "#paper{\n    width: 600px;\n    height: 800px;\n    background-color: beige;\n}", ""]);
+exports.push([module.i, "#paper{\n    width: 600px;\n    height: 800px;\n    background-color: beige;\n}\n\n#threeD{\n    position: absolute;\n    left: 630px;\n    top: 30px;\n}", ""]);
 
 // exports
 
@@ -36,24 +36,24 @@ module.exports = module.exports.toString();
 
 /***/ }),
 
-/***/ 143:
+/***/ 146:
 /***/ (function(module, exports) {
 
 module.exports = "<h1>\n<app-sketch></app-sketch>\n</h1>\n"
 
 /***/ }),
 
-/***/ 144:
+/***/ 147:
 /***/ (function(module, exports) {
 
-module.exports = "<div id=\"paper\">\n  <svg style=\"width: 100%; height: 100%;\" (mousedown)=\"handleMouseDown($event)\" (mouseup)=\"handleMouseUp($event)\" (mousemove)=\"handleMove($event)\">\n    <svg:g [attr.id]=\"i\" *ngFor=\"let feature of features()\">\n      <ng-container *ngFor=\"let plane of feature.planes()\">\n        <polygon [attr.points]=\"plane.svgPoints()\" [attr.fill]=\"plane.color\" style=\"stroke-width:2\" />\n      </ng-container>\n      <ng-container *ngFor=\"let edge of feature.edges()\">\n        <line [attr.x1]=\"edge.start.x\" [attr.y1]=\"edge.start.y\" [attr.x2]=\"edge.end.x\" [attr.y2]=\"edge.end.y\" [attr.stroke]=\"edge.color\"\n          style=\"stroke-width:2\" fill-rule=\"evenodd\" />\n      </ng-container>\n    </svg:g>\n  </svg>\n</div>"
+module.exports = "<div id=\"paper\">\n  <svg style=\"width: 100%; height: 100%;\" (mousedown)=\"handleMouseDown($event)\" (mouseup)=\"handleMouseUp($event)\" (mousemove)=\"handleMove($event)\">\n    <svg:g [attr.id]=\"i\" *ngFor=\"let feature of features()\">\n      <ng-container *ngFor=\"let plane of feature.planes()\">\n        <polygon [attr.points]=\"plane.svgPoints()\" [attr.fill]=\"plane.svgColor()\" style=\"stroke-width:2\" />\n      </ng-container>\n      <ng-container *ngFor=\"let edge of feature.edges()\">\n        <line [attr.x1]=\"edge.start.x\" [attr.y1]=\"edge.start.y\" [attr.x2]=\"edge.end.x\" [attr.y2]=\"edge.end.y\" [attr.stroke]=\"edge.color\"\n          style=\"stroke-width:2\" fill-rule=\"evenodd\" />\n      </ng-container>\n    </svg:g>\n  </svg>\n  <div id=\"threeD\">\n    <div #container></div>\n  </div>\n</div>"
 
 /***/ }),
 
-/***/ 169:
+/***/ 173:
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(75);
+module.exports = __webpack_require__(77);
 
 
 /***/ }),
@@ -117,6 +117,7 @@ var Edge = (function () {
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return FoldFeature; });
 var FoldFeature = (function () {
     function FoldFeature() {
+        this.children = [];
     }
     FoldFeature.prototype.edges = function () {
         return [];
@@ -129,6 +130,9 @@ var FoldFeature = (function () {
     };
     FoldFeature.prototype.setDriver = function (fold) {
         this.drivingFold = fold;
+    };
+    FoldFeature.prototype.addChild = function (feature) {
+        this.children.push(feature);
     };
     FoldFeature.prototype.spansFold = function (e) {
         return false;
@@ -144,8 +148,10 @@ var FoldFeature = (function () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(75);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return OrientationKind; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Plane; });
+
 var OrientationKind;
 (function (OrientationKind) {
     OrientationKind[OrientationKind["Vertical"] = 0] = "Vertical";
@@ -161,12 +167,15 @@ var Plane = (function () {
         this.orientation = orientation;
         this.color = this.randomColor();
     }
+    Plane.prototype.svgColor = function () {
+        return "rgb(" + this.color.r * 255 + "," + this.color.g * 255 + "," + this.color.b * 255 + ")";
+    };
     Plane.prototype.randomColor = function () {
         switch (this.orientation) {
             case OrientationKind.Horizontal:
-                return "rgb(" + this.randomBetween(240, 250) + "," + this.randomBetween(255, 255) + "," + this.randomBetween(255, 255) + ")";
+                return new __WEBPACK_IMPORTED_MODULE_0_three__["j" /* Color */](this.randomBetween(240, 250) / 255, this.randomBetween(255, 255) / 255, this.randomBetween(255, 255) / 255);
             case OrientationKind.Vertical:
-                return "rgb(" + this.randomBetween(255, 255) + "," + this.randomBetween(240, 250) + "," + this.randomBetween(255, 255) + ")";
+                return new __WEBPACK_IMPORTED_MODULE_0_three__["j" /* Color */](this.randomBetween(255, 255) / 255, this.randomBetween(240, 250) / 255, this.randomBetween(255, 255) / 255);
         }
     };
     Plane.prototype.randomBetween = function (min, max) {
@@ -184,7 +193,7 @@ var Plane = (function () {
 
 /***/ }),
 
-/***/ 74:
+/***/ 76:
 /***/ (function(module, exports) {
 
 function webpackEmptyContext(req) {
@@ -193,20 +202,20 @@ function webpackEmptyContext(req) {
 webpackEmptyContext.keys = function() { return []; };
 webpackEmptyContext.resolve = webpackEmptyContext;
 module.exports = webpackEmptyContext;
-webpackEmptyContext.id = 74;
+webpackEmptyContext.id = 76;
 
 
 /***/ }),
 
-/***/ 75:
+/***/ 77:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__angular_platform_browser_dynamic__ = __webpack_require__(81);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__app_app_module__ = __webpack_require__(83);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__environments_environment__ = __webpack_require__(87);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__angular_platform_browser_dynamic__ = __webpack_require__(83);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__app_app_module__ = __webpack_require__(85);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__environments_environment__ = __webpack_require__(90);
 
 
 
@@ -219,7 +228,7 @@ __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1__angular_platform_browser_dyna
 
 /***/ }),
 
-/***/ 82:
+/***/ 84:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -239,10 +248,10 @@ var AppComponent = (function () {
     return AppComponent;
 }());
 AppComponent = __decorate([
-    __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__angular_core__["_5" /* Component */])({
+    __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__angular_core__["_6" /* Component */])({
         selector: 'app-root',
-        template: __webpack_require__(143),
-        styles: [__webpack_require__(141)],
+        template: __webpack_require__(146),
+        styles: [__webpack_require__(144)],
     })
 ], AppComponent);
 
@@ -250,16 +259,16 @@ AppComponent = __decorate([
 
 /***/ }),
 
-/***/ 83:
+/***/ 85:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_platform_browser__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_platform_browser__ = __webpack_require__(23);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__angular_core__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__angular_forms__ = __webpack_require__(79);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__angular_http__ = __webpack_require__(80);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__app_component__ = __webpack_require__(82);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__sketch_sketch_component__ = __webpack_require__(86);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__angular_forms__ = __webpack_require__(81);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__angular_http__ = __webpack_require__(82);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__app_component__ = __webpack_require__(84);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__sketch_sketch_component__ = __webpack_require__(88);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return AppModule; });
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -298,7 +307,7 @@ AppModule = __decorate([
 
 /***/ }),
 
-/***/ 84:
+/***/ 86:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -412,7 +421,7 @@ var BoxFold = (function (_super) {
 
 /***/ }),
 
-/***/ 85:
+/***/ 87:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -469,14 +478,17 @@ var Card = (function (_super) {
 
 /***/ }),
 
-/***/ 86:
+/***/ 88:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_app_box_fold__ = __webpack_require__(84);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_app_card__ = __webpack_require__(85);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_app_box_fold__ = __webpack_require__(86);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_app_card__ = __webpack_require__(87);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_app_edge__ = __webpack_require__(31);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_lodash__ = __webpack_require__(64);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_lodash__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_app_sketch_sketch3d__ = __webpack_require__(89);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return SketchComponent; });
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -487,6 +499,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+
+
 
 
 
@@ -510,6 +524,7 @@ var SketchComponent = (function () {
         this.currentFeature = new __WEBPACK_IMPORTED_MODULE_1_app_box_fold__["a" /* BoxFold */](p, p);
     };
     SketchComponent.prototype.handleMouseUp = function (e) {
+        this.sketch3d.addFeature(this.currentFeature);
         this.previousFeatures.push(this.currentFeature);
         delete this.currentFeature;
     };
@@ -524,6 +539,7 @@ var SketchComponent = (function () {
                     for (var _b = 0, _c = feature.folds(); _b < _c.length; _b++) {
                         var fold = _c[_b];
                         if (this.currentFeature.spansFold(fold)) {
+                            feature.addChild(this.currentFeature);
                             this.currentFeature.setDriver(fold);
                             break outer;
                         }
@@ -534,23 +550,117 @@ var SketchComponent = (function () {
         }
     };
     SketchComponent.prototype.ngOnInit = function () {
+        console.log(this.elementRef);
+        this.container = this.elementRef.nativeElement;
+        this.sketch3d = new __WEBPACK_IMPORTED_MODULE_5_app_sketch_sketch3d__["a" /* Sketch3d */](__WEBPACK_IMPORTED_MODULE_4_lodash__["flatten"](this.features()), this.container);
+        this.sketch3d.init();
     };
     return SketchComponent;
 }());
+__decorate([
+    __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__angular_core__["_5" /* ViewChild */])('container'),
+    __metadata("design:type", typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_0__angular_core__["M" /* ElementRef */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_0__angular_core__["M" /* ElementRef */]) === "function" && _a || Object)
+], SketchComponent.prototype, "elementRef", void 0);
 SketchComponent = __decorate([
-    __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__angular_core__["_5" /* Component */])({
+    __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__angular_core__["_6" /* Component */])({
         selector: 'app-sketch',
-        template: __webpack_require__(144),
-        styles: [__webpack_require__(142)]
+        template: __webpack_require__(147),
+        styles: [__webpack_require__(145)]
     }),
     __metadata("design:paramtypes", [])
 ], SketchComponent);
 
+var _a;
 //# sourceMappingURL=sketch.component.js.map
 
 /***/ }),
 
-/***/ 87:
+/***/ 89:
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(75);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash__ = __webpack_require__(64);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_lodash__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Sketch3d; });
+
+
+var Sketch3d = (function () {
+    function Sketch3d(features, container) {
+        this.features = features;
+        this.container = container;
+    }
+    Sketch3d.prototype.addFeature = function (feature) {
+        this.features.push(feature);
+        this.features = [feature];
+        var planes = __WEBPACK_IMPORTED_MODULE_1_lodash__["flatten"](this.features.map(function (feature) { return feature.planes(); }));
+        // const plane = planes[0];
+        for (var _i = 0, planes_1 = planes; _i < planes_1.length; _i++) {
+            var plane = planes_1[_i];
+            var planeShape = new __WEBPACK_IMPORTED_MODULE_0_three__["a" /* Shape */]();
+            planeShape.moveTo(plane.points[0].x, plane.points[0].y);
+            for (var _a = 0, _b = plane.points; _a < _b.length; _a++) {
+                var point = _b[_a];
+                planeShape.lineTo(point.x, point.y);
+            }
+            var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+            var geometry = new __WEBPACK_IMPORTED_MODULE_0_three__["b" /* ExtrudeGeometry */](planeShape, extrudeSettings);
+            // let geometry = new THREE.PlaneGeometry(10, 5),
+            var material = new __WEBPACK_IMPORTED_MODULE_0_three__["c" /* MeshPhongMaterial */]({ color: plane.color, wireframe: false });
+            // this.plane = 
+            this.cube = new __WEBPACK_IMPORTED_MODULE_0_three__["d" /* Mesh */](geometry, material);
+            this.cube.position.set(0, 0, 0);
+            var scalingFactor = 0.009;
+            this.cube.scale.set(scalingFactor, scalingFactor, scalingFactor);
+            this.camera.lookAt(this.cube.position);
+            this.scene.add(this.cube);
+        }
+        this.render();
+    };
+    Sketch3d.prototype.init = function () {
+        var screen = {
+            width: 600,
+            height: 800
+        }, view = {
+            angle: 45,
+            aspect: screen.width / screen.height,
+            near: 0.1,
+            far: 1000
+        };
+        this.scene = new __WEBPACK_IMPORTED_MODULE_0_three__["e" /* Scene */]();
+        this.camera = new __WEBPACK_IMPORTED_MODULE_0_three__["f" /* PerspectiveCamera */](view.angle, view.aspect, view.near, view.far);
+        this.renderer = new __WEBPACK_IMPORTED_MODULE_0_three__["g" /* WebGLRenderer */]();
+        this.scene.add(this.camera);
+        this.scene.add(new __WEBPACK_IMPORTED_MODULE_0_three__["h" /* AxisHelper */](20));
+        this.camera.position.set(10, 10, 10);
+        this.renderer.setSize(screen.width, screen.height);
+        this.container.appendChild(this.renderer.domElement);
+        var light = new __WEBPACK_IMPORTED_MODULE_0_three__["i" /* PointLight */](0xffffff, 8, 100);
+        light.position.set(50, 50, 50);
+        this.scene.add(light);
+        this.render();
+    };
+    Sketch3d.prototype.render = function () {
+        var self = this;
+        (function render() {
+            requestAnimationFrame(render);
+            self.renderer.render(self.scene, self.camera);
+            self.animate();
+        }());
+    };
+    Sketch3d.prototype.animate = function () {
+        // this.cube.rotateX(0.1);
+        // this.cube.rotateY(0.1);
+        // this.camera.position.addScalar(0.2);
+    };
+    return Sketch3d;
+}());
+
+//# sourceMappingURL=sketch3d.js.map
+
+/***/ }),
+
+/***/ 90:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -562,5 +672,5 @@ var environment = {
 
 /***/ })
 
-},[169]);
+},[173]);
 //# sourceMappingURL=main.bundle.js.map
