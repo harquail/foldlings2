@@ -42329,7 +42329,7 @@ exports.subscribeToResult = subscribeToResult;
 /* unused harmony export AudioLoader */
 /* unused harmony export SpotLightShadow */
 /* unused harmony export SpotLight */
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "j", function() { return PointLight; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "k", function() { return PointLight; });
 /* unused harmony export RectAreaLight */
 /* unused harmony export HemisphereLight */
 /* unused harmony export DirectionalLightShadow */
@@ -42394,12 +42394,12 @@ exports.subscribeToResult = subscribeToResult;
 /* unused harmony export Box3 */
 /* unused harmony export Box2 */
 /* unused harmony export Line3 */
-/* unused harmony export Euler */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "l", function() { return Euler; });
 /* unused harmony export Vector4 */
-/* unused harmony export Vector3 */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "j", function() { return Vector3; });
 /* unused harmony export Vector2 */
 /* unused harmony export Quaternion */
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "k", function() { return Color; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "m", function() { return Color; });
 /* unused harmony export ImmediateRenderObject */
 /* unused harmony export VertexNormalsHelper */
 /* unused harmony export SpotLightHelper */

@@ -81,11 +81,12 @@ var EdgeKind;
 // really just a straight line right now.
 // #TODO: maybe just use svgpathelements
 var Edge = (function () {
-    function Edge(start, end, kind) {
+    function Edge(start, end, feature, kind) {
         if (kind === void 0) { kind = EdgeKind.Cut; }
         this.start = start;
         this.end = end;
         this.kind = kind;
+        this.feature = feature;
         this.color = this.edgeColor(this.kind);
     }
     // TODO move this to view layer
@@ -101,7 +102,7 @@ var Edge = (function () {
         return Math.floor(Math.random() * (max - min + 1) + min);
     };
     Edge.prototype.reverse = function () {
-        return new Edge(this.end, this.start);
+        return new Edge(this.end, this.start, this.feature, this.kind);
     };
     return Edge;
 }());
@@ -127,7 +128,7 @@ var OrientationKind;
     OrientationKind[OrientationKind["Horizontal"] = 1] = "Horizontal";
 })(OrientationKind || (OrientationKind = {}));
 var Plane = (function () {
-    function Plane(edges, orientation) {
+    function Plane(edges, orientation, parent) {
         this.points = [];
         for (var _i = 0, edges_1 = edges; _i < edges_1.length; _i++) {
             var edge = edges_1[_i];
@@ -135,17 +136,24 @@ var Plane = (function () {
         }
         this.pivotPoint = __WEBPACK_IMPORTED_MODULE_1_lodash__["minBy"](this.points, function (p) { return p.x + p.y; });
         this.orientation = orientation;
+        this.parent = parent;
         this.color = this.randomColor();
     }
     Plane.prototype.svgColor = function () {
         return "rgb(" + this.color.r * 255 + "," + this.color.g * 255 + "," + this.color.b * 255 + ")";
     };
     Plane.prototype.randomColor = function () {
+        var numParents = 0.3;
+        var parent = this;
+        while (parent = parent.parent) {
+            numParents += .1;
+        }
+        console.log(numParents);
         switch (this.orientation) {
             case OrientationKind.Horizontal:
-                return new __WEBPACK_IMPORTED_MODULE_0_three__["k" /* Color */](this.randomBetween(20, 200) / 255, this.randomBetween(255, 255) / 255, this.randomBetween(255, 255) / 255);
+                return new __WEBPACK_IMPORTED_MODULE_0_three__["m" /* Color */](this.randomBetween(20, 20) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255);
             case OrientationKind.Vertical:
-                return new __WEBPACK_IMPORTED_MODULE_0_three__["k" /* Color */](this.randomBetween(255, 255) / 255, this.randomBetween(20, 200) / 255, this.randomBetween(255, 255) / 255);
+                return new __WEBPACK_IMPORTED_MODULE_0_three__["m" /* Color */](this.randomBetween(255 * numParents, 255 * numParents) / 255, this.randomBetween(20, 20) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255);
         }
     };
     Plane.prototype.randomBetween = function (min, max) {
@@ -170,7 +178,6 @@ var Plane = (function () {
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return FoldFeature; });
 var FoldFeature = (function () {
     function FoldFeature() {
-        this.children = [];
     }
     FoldFeature.prototype.edges = function () {
         return [];
@@ -181,11 +188,11 @@ var FoldFeature = (function () {
     FoldFeature.prototype.planes = function () {
         return [];
     };
+    FoldFeature.prototype.topPlane = function () {
+        return this.planes()[0] || null;
+    };
     FoldFeature.prototype.setDriver = function (fold) {
         this.drivingFold = fold;
-    };
-    FoldFeature.prototype.addChild = function (feature) {
-        this.children.push(feature);
     };
     FoldFeature.prototype.spansFold = function (e) {
         return false;
@@ -353,8 +360,8 @@ var BoxFold = (function (_super) {
             return this.cachedEdges;
         }
         this.cachedPlanes = [];
-        var h0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](this.start, new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](this.end.x, this.start.y), __WEBPACK_IMPORTED_MODULE_1_app_edge__["c" /* EdgeKind */].Fold);
-        var h2 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](this.end, new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](this.start.x, this.end.y), __WEBPACK_IMPORTED_MODULE_1_app_edge__["c" /* EdgeKind */].Fold);
+        var h0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](this.start, new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](this.end.x, this.start.y), this, __WEBPACK_IMPORTED_MODULE_1_app_edge__["c" /* EdgeKind */].Fold);
+        var h2 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](this.end, new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](this.start.x, this.end.y), this, __WEBPACK_IMPORTED_MODULE_1_app_edge__["c" /* EdgeKind */].Fold);
         //
         //                  h0
         //            S- - - - -
@@ -372,14 +379,16 @@ var BoxFold = (function (_super) {
             var drivingY = this.drivingFold.start.y;
             // h1 is translated by 
             var offsetY = drivingY - this.start.y;
-            var h1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](this.end.x, this.end.y - offsetY), new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](this.start.x, this.end.y - offsetY), __WEBPACK_IMPORTED_MODULE_1_app_edge__["c" /* EdgeKind */].Fold);
-            var e0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](h0.end, h1.start);
-            var s0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](h1.end, this.start);
-            var e1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](h1.start, this.end);
-            var s1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](h2.end, h1.end);
+            var h1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](this.end.x, this.end.y - offsetY), new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](this.start.x, this.end.y - offsetY), this, __WEBPACK_IMPORTED_MODULE_1_app_edge__["c" /* EdgeKind */].Fold);
+            var e0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](h0.end, h1.start, this);
+            var s0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](h1.end, this.start, this);
+            var e1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](h1.start, this.end, this);
+            var s1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](h2.end, h1.end, this);
             es.push(h0, e0, h1, s0, e1, h2, s1);
-            this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* Plane */]([h0, e0, h1, s0], __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* OrientationKind */].Horizontal));
-            this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* Plane */]([e1, h2, s1, h1.reverse()], __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* OrientationKind */].Vertical));
+            // console.log(this.drivingFold.feature.planes());
+            var topPlane = (new __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* Plane */]([e1, h2, s1, h1.reverse()], __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* OrientationKind */].Vertical, this.drivingFold.feature.topPlane()));
+            this.cachedPlanes.push(topPlane);
+            this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* Plane */]([h0, e0, h1, s0], __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* OrientationKind */].Horizontal, topPlane));
         }
         else {
             // otherwise, we only have 4 edges
@@ -390,8 +399,8 @@ var BoxFold = (function (_super) {
             //            |      |
             //            -------E
             //               h2
-            var s0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](h2.end, this.start);
-            var e0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](h0.end, this.end);
+            var s0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](h2.end, this.start, this);
+            var e0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](h0.end, this.end, this);
             h0.kind = __WEBPACK_IMPORTED_MODULE_1_app_edge__["c" /* EdgeKind */].Cut;
             h2.kind = __WEBPACK_IMPORTED_MODULE_1_app_edge__["c" /* EdgeKind */].Cut;
             es.push(h0, e0, h2, s0);
@@ -451,13 +460,13 @@ var Card = (function (_super) {
     function Card(width, height) {
         var _this = _super.call(this) || this;
         _this.cachedPlanes = [];
-        _this.h1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](0, height / 2), new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](width, height / 2), __WEBPACK_IMPORTED_MODULE_1_app_edge__["c" /* EdgeKind */].Fold);
-        _this.s0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](0, 0), _this.h1.start);
-        _this.e0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](_this.h1.end, new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](width, 0));
-        _this.h0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](_this.e0.end, _this.s0.start);
-        _this.e1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](_this.h1.end, new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](width, height));
-        _this.h2 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](_this.e1.end, new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](0, height));
-        _this.s1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](_this.h2.end, _this.h1.start);
+        _this.h1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](0, height / 2), new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](width, height / 2), _this, __WEBPACK_IMPORTED_MODULE_1_app_edge__["c" /* EdgeKind */].Fold);
+        _this.s0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](0, 0), _this.h1.start, _this);
+        _this.e0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](_this.h1.end, new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](width, 0), _this);
+        _this.h0 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](_this.e0.end, _this.s0.start, _this);
+        _this.e1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](_this.h1.end, new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](width, height), _this);
+        _this.h2 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](_this.e1.end, new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Point */](0, height), _this);
+        _this.s1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* Edge */](_this.h2.end, _this.h1.start, _this);
         _this.centerFold = _this.h1;
         _this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* Plane */]([_this.s0, _this.h1, _this.e0, _this.h0], __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* OrientationKind */].Vertical));
         _this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* Plane */]([_this.h1, _this.e1, _this.h2, _this.s1], __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* OrientationKind */].Horizontal));
@@ -531,6 +540,7 @@ var SketchComponent = (function () {
         this.sketch3d.addFeature(this.currentFeature);
         this.previousFeatures.push(this.currentFeature);
         delete this.currentFeature;
+        // console.log(this.features());
     };
     SketchComponent.prototype.handleMove = function (e) {
         if (this.currentFeature) {
@@ -543,7 +553,6 @@ var SketchComponent = (function () {
                     for (var _b = 0, _c = feature.folds(); _b < _c.length; _b++) {
                         var fold = _c[_b];
                         if (this.currentFeature.spansFold(fold)) {
-                            feature.addChild(this.currentFeature);
                             this.currentFeature.setDriver(fold);
                             break outer;
                         }
@@ -614,16 +623,19 @@ var Plane3d = (function (_super) {
 var Sketch3d = (function () {
     function Sketch3d(features, container) {
         this.planes = [];
+        this.accumulatedRotation = 0;
+        this.direction = -1;
         this.features = features;
         this.container = container;
     }
     Sketch3d.prototype.addFeature = function (feature) {
         this.features.push(feature);
         this.features = [feature];
-        this.planes = __WEBPACK_IMPORTED_MODULE_2_lodash__["flatten"](this.features.map(function (feature) { return feature.planes(); }));
+        var newPlanes = __WEBPACK_IMPORTED_MODULE_2_lodash__["flatten"](this.features.map(function (feature) { return feature.planes(); }));
+        (_a = this.planes).push.apply(_a, newPlanes);
         // const plane = planes[0];
-        for (var _i = 0, _a = this.planes; _i < _a.length; _i++) {
-            var plane = _a[_i];
+        for (var _i = 0, newPlanes_1 = newPlanes; _i < newPlanes_1.length; _i++) {
+            var plane = newPlanes_1[_i];
             var planeShape = new __WEBPACK_IMPORTED_MODULE_1_three__["a" /* Shape */]();
             planeShape.moveTo(plane.points[0].x, -plane.points[0].y);
             for (var _b = 0, _c = plane.points; _b < _c.length; _b++) {
@@ -632,39 +644,29 @@ var Sketch3d = (function () {
             }
             var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
             var geometry = new __WEBPACK_IMPORTED_MODULE_1_three__["b" /* ExtrudeGeometry */](planeShape, extrudeSettings);
-            // geometry.rotateX(THREE.Math.degToRad(180));
-            // let geometry = new THREE.PlaneGeometry(10, 5),
             var material = new __WEBPACK_IMPORTED_MODULE_1_three__["c" /* MeshPhongMaterial */]({ color: plane.color });
             // this.plane = 
             plane.mesh = new __WEBPACK_IMPORTED_MODULE_1_three__["d" /* Mesh */](geometry, material);
             var s = plane.pivotPoint;
             var scalingFactor = 0.009;
             plane.mesh.scale.set(scalingFactor, scalingFactor, scalingFactor);
-            plane.mesh.position.set(0, 0, 0).set(-s.x, s.y, 0).multiplyScalar(scalingFactor);
-            this.camera.lookAt(plane.mesh.position);
+            plane.mesh.position.set(-s.x, s.y, 0).multiplyScalar(scalingFactor);
+            // this.camera.lookAt(plane.mesh.position);
             var pointGeo = new __WEBPACK_IMPORTED_MODULE_1_three__["e" /* SphereGeometry */](0.1);
             var pointMesh = new __WEBPACK_IMPORTED_MODULE_1_three__["d" /* Mesh */](pointGeo, new __WEBPACK_IMPORTED_MODULE_1_three__["c" /* MeshPhongMaterial */]({ color: plane.color }));
             pointMesh.position.set(s.x, -s.y, 0).multiplyScalar(scalingFactor);
             plane.pivot = pointMesh;
+            // if(plane.parent){
+            //   pointMesh.position.set(0,0, 0).multiplyScalar(scalingFactor);
+            //   (plane.parent as Plane3d).mesh.add(pointMesh)
+            // }
+            // else{
             this.scene.add(pointMesh);
+            // }
             pointMesh.add(plane.mesh);
-            // this.scene.add(plane.mesh);
-            // pointMesh.add(plane.mesh)
         }
         this.render();
-    };
-    Sketch3d.prototype.rotateAboutPoint = function (obj, point, axis, theta, pointIsWorld) {
-        pointIsWorld = (pointIsWorld === undefined) ? false : pointIsWorld;
-        if (pointIsWorld) {
-            obj.parent.localToWorld(obj.position); // compensate for world coordinate
-        }
-        obj.position.sub(point); // remove the offset
-        obj.position.applyAxisAngle(axis, theta); // rotate the POSITION
-        obj.position.add(point); // re-add the offset
-        if (pointIsWorld) {
-            obj.parent.worldToLocal(obj.position); // undo world coordinates compensation
-        }
-        obj.rotateOnAxis(axis, theta); // rotate the OBJECT
+        var _a;
     };
     Sketch3d.prototype.init = function () {
         var screen = {
@@ -682,9 +684,10 @@ var Sketch3d = (function () {
         this.scene.add(this.camera);
         this.scene.add(new __WEBPACK_IMPORTED_MODULE_1_three__["i" /* AxisHelper */](2));
         this.camera.position.set(10, 0, 20);
+        this.camera.lookAt(new __WEBPACK_IMPORTED_MODULE_1_three__["j" /* Vector3 */](0, 0, 0));
         this.renderer.setSize(screen.width, screen.height);
         this.container.appendChild(this.renderer.domElement);
-        var light = new __WEBPACK_IMPORTED_MODULE_1_three__["j" /* PointLight */](0xffffff, 8, 100);
+        var light = new __WEBPACK_IMPORTED_MODULE_1_three__["k" /* PointLight */](0xffffff, 8, 100);
         light.position.set(50, 50, 50);
         this.scene.add(light);
         this.render();
@@ -698,28 +701,19 @@ var Sketch3d = (function () {
         }());
     };
     Sketch3d.prototype.animate = function () {
+        this.accumulatedRotation += 0.005 * this.direction;
+        if (Math.abs(this.accumulatedRotation) > Math.PI) {
+            this.direction *= -1;
+        }
         for (var _i = 0, _a = this.planes; _i < _a.length; _i++) {
             var plane = _a[_i];
             switch (plane.orientation) {
                 case __WEBPACK_IMPORTED_MODULE_0_app_plane__["b" /* OrientationKind */].Vertical:
-                    // plane.pivot.rotateX(-0.01);
                     break;
                 case __WEBPACK_IMPORTED_MODULE_0_app_plane__["b" /* OrientationKind */].Horizontal:
-                    plane.pivot.rotateX(-0.01);
+                    plane.pivot.setRotationFromEuler(new __WEBPACK_IMPORTED_MODULE_1_three__["l" /* Euler */](this.accumulatedRotation, 0, 0));
                     break;
             }
-            // console.log(pointMesh.getWorldPosition());
-            // var pad2 = new THREE.Vector3(e.x, e.y, 0);
-            // const rawr = (pad1.add(pad2)).multiplyScalar(0.5);
-            // dir.subVectors(new THREE.Vector3(s.x, s.y, 0), new THREE.Vector3(e.x, e.y, 0));
-            // plane.mesh.rotateOnAxis(dir,0.01)
-            // plane.mesh.rotateOnAxis(dir,0.01);
-            // var geometry = new THREE.Geometry();
-            // geometry.vertices.push(pad1);
-            // geometry.vertices.push(pad2);
-            // var line = new THREE.Line(geometry, new THREE.LineBasicMaterial());
-            // this.camera.lookAt(line.aab);
-            // renderer.render(scene, camera);
         }
     };
     return Sketch3d;
