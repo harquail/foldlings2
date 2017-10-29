@@ -1,3 +1,4 @@
+import { FoldFeature } from "app/fold-feature"
 export class Point {
     public x: number;
     public y: number;
@@ -18,28 +19,31 @@ export class Edge {
     public end: Point;
     public color: string;
     public kind: EdgeKind;
-    constructor(start: Point, end: Point, kind: EdgeKind = EdgeKind.Cut) {
+    public feature: FoldFeature;
+
+    constructor(start: Point, end: Point, feature: FoldFeature, kind: EdgeKind = EdgeKind.Cut) {
         this.start = start;
         this.end = end;
         this.kind = kind;
+        this.feature = feature;
         this.color = this.edgeColor(this.kind);
     }
 
     // TODO move this to view layer
-    private edgeColor(kind:EdgeKind): string{
-        switch(kind){
+    private edgeColor(kind: EdgeKind): string {
+        switch (kind) {
             case EdgeKind.Cut:
-            return `rgb(${this.randomBetween(50, 255)},${this.randomBetween(0, 0)},${this.randomBetween(0, 255)})`
+                return `rgb(${this.randomBetween(50, 255)},${this.randomBetween(0, 0)},${this.randomBetween(0, 255)})`
             case EdgeKind.Fold:
-            return `rgb(${this.randomBetween(0, 0)},${this.randomBetween(100, 255)},${this.randomBetween(0, 0)})`
+                return `rgb(${this.randomBetween(0, 0)},${this.randomBetween(100, 255)},${this.randomBetween(0, 0)})`
         }
     }
-   
+
     private randomBetween(min: number, max: number) {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 
     public reverse() {
-        return new Edge(this.end, this.start);
+        return new Edge(this.end, this.start, this.feature, this.kind);
     }
 }

@@ -25,13 +25,13 @@ export class Card extends FoldFeature {
 
     constructor(width: number, height: number) {
         super();
-        this.h1 = new Edge(new Point(0, height / 2), new Point(width, height / 2), EdgeKind.Fold);
-        this.s0 = new Edge(new Point(0, 0), this.h1.start);
-        this.e0 = new Edge(this.h1.end, new Point(width, 0));
-        this.h0 = new Edge(this.e0.end, this.s0.start);
-        this.e1 = new Edge(this.h1.end, new Point(width, height));
-        this.h2 = new Edge(this.e1.end, new Point(0, height));
-        this.s1 = new Edge(this.h2.end, this.h1.start);
+        this.h1 = new Edge(new Point(0, height / 2), new Point(width, height / 2), this, EdgeKind.Fold);
+        this.s0 = new Edge(new Point(0, 0), this.h1.start, this);
+        this.e0 = new Edge(this.h1.end, new Point(width, 0), this);
+        this.h0 = new Edge(this.e0.end, this.s0.start, this);
+        this.e1 = new Edge(this.h1.end, new Point(width, height), this);
+        this.h2 = new Edge(this.e1.end, new Point(0, height), this);
+        this.s1 = new Edge(this.h2.end, this.h1.start, this);
         this.centerFold = this.h1;
         this.cachedPlanes.push(new Plane([this.s0, this.h1, this.e0, this.h0], OrientationKind.Vertical));
         this.cachedPlanes.push(new Plane([this.h1, this.e1, this.h2, this.s1], OrientationKind.Horizontal));

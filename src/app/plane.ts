@@ -13,16 +13,24 @@ export class Plane {
     public points: Point[] = [];
     public color: THREE.Color;
     public pivotPoint: Point;
+    public parent?: Plane;
+
     public svgColor(): string {
         return `rgb(${this.color.r * 255},${this.color.g * 255},${this.color.b * 255})`
     }
     private randomColor(): THREE.Color {
 
+        let numParents = 0.3;
+        let parent: Plane = this;
+        while (parent = parent.parent) {
+            numParents += .1;
+        }
+        console.log(numParents);
         switch (this.orientation) {
             case OrientationKind.Horizontal:
-                return new THREE.Color(this.randomBetween(20, 200) / 255, this.randomBetween(255, 255) / 255, this.randomBetween(255, 255) / 255);
+                return new THREE.Color(this.randomBetween(20, 20) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255);
             case OrientationKind.Vertical:
-                return new THREE.Color(this.randomBetween(255, 255) / 255, this.randomBetween(20, 200) / 255, this.randomBetween(255, 255) / 255);
+                return new THREE.Color(this.randomBetween(255 * numParents, 255 * numParents) / 255, this.randomBetween(20, 20) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255);
         }
     }
     private randomBetween(min: number, max: number) {
@@ -35,13 +43,15 @@ export class Plane {
         }).join(" ");
     }
 
-    constructor(edges: Edge[], orientation) {
+    constructor(edges: Edge[], orientation, parent?: Plane) {
         for (let edge of edges) {
             this.points.push(edge.start);
         }
-        this.pivotPoint = _.minBy(this.points,(p) => { return p.x + p.y });
+        this.pivotPoint = _.minBy(this.points, (p) => { return p.x + p.y });
         this.orientation = orientation;
-        this.color = this.randomColor()
+        this.parent = parent;
+        this.color = this.randomColor();
     }
+
 
 }

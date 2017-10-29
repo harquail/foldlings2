@@ -21,10 +21,11 @@ export class BoxFold extends FoldFeature {
         if (this.cachedEdges) {
             return this.cachedEdges
         }
+
         this.cachedPlanes = [];
-        const h0 = new Edge(this.start, new Point(this.end.x, this.start.y), EdgeKind.Fold);
-        const h2 = new Edge(this.end, new Point(this.start.x, this.end.y), EdgeKind.Fold);
-   
+        const h0 = new Edge(this.start, new Point(this.end.x, this.start.y), this, EdgeKind.Fold);
+        const h2 = new Edge(this.end, new Point(this.start.x, this.end.y), this, EdgeKind.Fold);
+
         //
         //                  h0
         //            S- - - - -
@@ -43,14 +44,16 @@ export class BoxFold extends FoldFeature {
             const drivingY = this.drivingFold.start.y;
             // h1 is translated by 
             const offsetY = drivingY - this.start.y;
-            const h1 = new Edge(new Point(this.end.x, this.end.y - offsetY), new Point(this.start.x, this.end.y - offsetY), EdgeKind.Fold);
-            const e0 = new Edge(h0.end, h1.start);
-            const s0 = new Edge(h1.end, this.start);
-            const e1 = new Edge(h1.start, this.end);
-            const s1 = new Edge(h2.end, h1.end);
+            const h1 = new Edge(new Point(this.end.x, this.end.y - offsetY), new Point(this.start.x, this.end.y - offsetY), this, EdgeKind.Fold);
+            const e0 = new Edge(h0.end, h1.start, this);
+            const s0 = new Edge(h1.end, this.start, this);
+            const e1 = new Edge(h1.start, this.end, this);
+            const s1 = new Edge(h2.end, h1.end, this);
             es.push(h0, e0, h1, s0, e1, h2, s1);
-            this.cachedPlanes.push(new Plane([h0, e0, h1, s0], OrientationKind.Horizontal));
-            this.cachedPlanes.push(new Plane([e1, h2, s1, h1.reverse()], OrientationKind.Vertical));
+            // console.log(this.drivingFold.feature.planes());
+            const topPlane = (new Plane([e1, h2, s1, h1.reverse()], OrientationKind.Vertical, this.drivingFold.feature.topPlane()));
+            this.cachedPlanes.push(topPlane);
+            this.cachedPlanes.push(new Plane([h0, e0, h1, s0], OrientationKind.Horizontal, topPlane));
         }
         else {
             // otherwise, we only have 4 edges
@@ -61,8 +64,8 @@ export class BoxFold extends FoldFeature {
             //            |      |
             //            -------E
             //               h2
-            const s0 = new Edge(h2.end, this.start);
-            const e0 = new Edge(h0.end, this.end);
+            const s0 = new Edge(h2.end, this.start, this);
+            const e0 = new Edge(h0.end, this.end, this);
             h0.kind = EdgeKind.Cut;
             h2.kind = EdgeKind.Cut;
             es.push(h0, e0, h2, s0);
