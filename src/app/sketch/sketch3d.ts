@@ -30,7 +30,6 @@ export class Sketch3d {
     const newPlanes = _.flatten(this.features.map((feature) => { return feature.planes() })) as Plane3d[];
     this.planes.push(...newPlanes)
 
-    const scalingFactor = 0.009;
 
     for (const plane of newPlanes) {
       var planeShape = new THREE.Shape();
@@ -43,16 +42,13 @@ export class Sketch3d {
       let material = new THREE.MeshPhongMaterial({ color: plane.color });
       plane.mesh = new THREE.Mesh(geometry, material);
       const s = plane.pivotPoint;
-      plane.mesh.scale.set(scalingFactor, scalingFactor, scalingFactor);
-      plane.mesh.position.set(-s.x, s.y, 0).multiplyScalar(scalingFactor);
+      plane.mesh.position.set(-s.x, s.y, 0);
 
-      var pointGeo = new THREE.SphereGeometry(0.1);
+      var pointGeo = new THREE.SphereGeometry(10);
       var pointMesh = new THREE.Mesh(pointGeo, new THREE.MeshPhongMaterial({ color: plane.color }));
-      pointMesh.position.set(s.x, -s.y, 0).multiplyScalar(scalingFactor);
+      pointMesh.position.set(s.x, -s.y, 0);
       plane.pivot = pointMesh;
-      if (plane.parent) {
-        console.log(plane.parent);
-      }
+      // console.log(plane.pivot.getWorldPosition());
       //   pointMesh.position.set(0,0, 0).multiplyScalar(scalingFactor);
       //   (plane.parent as Plane3d).mesh.add(pointMesh)
       // }
@@ -63,23 +59,26 @@ export class Sketch3d {
 
     }
 
-    // child plane test
-    const childPlane = new THREE.Shape();
-    childPlane.moveTo(30, -30);
-    childPlane.lineTo(30, -200);
-    childPlane.lineTo(200, -200);
-    childPlane.lineTo(200, -30);
-    childPlane.lineTo(30, -30);
-    var geometry = new THREE.ExtrudeGeometry(childPlane, extrudeSettings);
-    let material = new THREE.MeshPhongMaterial({ color: "#FF0000" });
-    const childPlaneMesh = new THREE.Mesh(geometry, material);
-    // this.planes[1].pivot.getWorldPosition();    
-    const pivotPos = this.planes[1].pivotPoint;
-    childPlaneMesh.position.set(-pivotPos.x, pivotPos.y, 0).multiplyScalar(scalingFactor);
-    childPlaneMesh.scale.set(scalingFactor, scalingFactor, scalingFactor);
-    this.planes[1].pivot.add(childPlaneMesh);
+    if (this.planes.length === 6) {
+      // calculate parent offset
 
-    this.render();
+      // child plane test
+      const childPlane = new THREE.Shape();
+      childPlane.moveTo(30, -30);
+      childPlane.lineTo(30, -200);
+      childPlane.lineTo(200, -200);
+      childPlane.lineTo(200, -30);
+      childPlane.lineTo(30, -30);
+      var geometry = new THREE.ExtrudeGeometry(childPlane, extrudeSettings);
+      let material = new THREE.MeshPhongMaterial({ color: "#FF0000" });
+      const childPlaneMesh = new THREE.Mesh(geometry, material);
+      // this.planes[1].pivot.getWorldPosition();    
+      const pivotPos = this.planes[5].pivotPoint;
+      childPlaneMesh.position.set(-pivotPos.x, pivotPos.y, 0);
+      this.planes[5].pivot.add(childPlaneMesh);
+    }
+
+
   }
 
   public init() {
@@ -101,14 +100,14 @@ export class Sketch3d {
     this.scene.add(this.camera);
     this.scene.add(new THREE.AxisHelper(2));
 
-    this.camera.position.set(10, 0, 20);
+    this.camera.position.set(1500, 0, 1500);
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     this.renderer.setSize(screen.width, screen.height);
     this.container.appendChild(this.renderer.domElement);
 
-    var light = new THREE.PointLight(0xffffff, 8, 100);
-    light.position.set(50, 50, 50);
+    var light = new THREE.PointLight(0xffffff, 9, 2600);
+    light.position.set(1500, 0, 1500);
     this.scene.add(light);
 
     this.render();
@@ -128,12 +127,13 @@ export class Sketch3d {
   private direction = -1;
 
   public animate() {
-    this.accumulatedRotation += 0.005 * this.direction;
-    if (Math.abs(this.accumulatedRotation) > Math.PI) {
+    this.accumulatedRotation += 0.01 * this.direction;
+    if (Math.abs(this.accumulatedRotation) + 0.05 > Math.PI) {
       this.direction *= -1;
     }
 
     for (const plane of this.planes) {
+      console.log(plane.pivot.getWorldPosition());
       switch (plane.orientation) {
         case OrientationKind.Vertical:
           break;
