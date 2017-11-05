@@ -51,9 +51,9 @@ export class BoxFold extends FoldFeature {
             const s1 = new Edge(h2.end, h1.end, this);
             es.push(h0, e0, h1, s0, e1, h2, s1);
             // console.log(this.drivingFold.feature.planes());
-            const topPlane = (new Plane([e1, h2, s1, h1.reverse()], OrientationKind.Vertical, this.drivingFold.feature.topPlane()));
+            const topPlane = new Plane([h0, e0, h1, s0], OrientationKind.Horizontal, this.drivingFold.feature.topPlane());
             this.cachedPlanes.push(topPlane);
-            this.cachedPlanes.push(new Plane([h0, e0, h1, s0], OrientationKind.Horizontal, topPlane));
+            this.cachedPlanes.push((new Plane([e1, h2, s1, h1.reverse()], OrientationKind.Vertical, topPlane)));
         }
         else {
             // otherwise, we only have 4 edges

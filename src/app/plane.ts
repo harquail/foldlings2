@@ -20,18 +20,18 @@ export class Plane {
     }
     private randomColor(): THREE.Color {
 
-        let numParents = 0.3;
+        let numParents = 0.2;
         let parent: Plane = this;
         while (parent = parent.parent) {
-            numParents += .1;
+            numParents += .2;
         }
-        console.log(numParents);
-        switch (this.orientation) {
-            case OrientationKind.Horizontal:
-                return new THREE.Color(this.randomBetween(20, 20) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255);
-            case OrientationKind.Vertical:
-                return new THREE.Color(this.randomBetween(255 * numParents, 255 * numParents) / 255, this.randomBetween(20, 20) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255);
-        }
+        // console.log(numParents);
+        // switch (this.orientation) {
+            // case OrientationKind.Horizontal:
+                // return new THREE.Color(this.randomBetween(20, 20) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255);
+            // case OrientationKind.Vertical:
+                return new THREE.Color(this.randomBetween(255 * numParents, 255 * numParents) / 255, this.randomBetween(0, 0) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255);
+        // }
     }
     private randomBetween(min: number, max: number) {
         return Math.floor(Math.random() * (max - min + 1) + min);

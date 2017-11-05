@@ -31,54 +31,66 @@ export class Sketch3d {
     this.planes.push(...newPlanes)
 
 
-    for (const plane of newPlanes) {
-      var planeShape = new THREE.Shape();
-      planeShape.moveTo(plane.points[0].x, -plane.points[0].y);
-      for (const point of plane.points) {
-        planeShape.lineTo(point.x, -point.y);
-      }
-      var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
-      var geometry = new THREE.ExtrudeGeometry(planeShape, extrudeSettings);
-      let material = new THREE.MeshPhongMaterial({ color: plane.color });
-      plane.mesh = new THREE.Mesh(geometry, material);
-      const s = plane.pivotPoint;
-      plane.mesh.position.set(-s.x, s.y, 0);
-
-      var pointGeo = new THREE.SphereGeometry(10);
-      var pointMesh = new THREE.Mesh(pointGeo, new THREE.MeshPhongMaterial({ color: plane.color }));
-      pointMesh.position.set(s.x, -s.y, 0);
-      plane.pivot = pointMesh;
-      // console.log(plane.pivot.getWorldPosition());
-      //   pointMesh.position.set(0,0, 0).multiplyScalar(scalingFactor);
-      //   (plane.parent as Plane3d).mesh.add(pointMesh)
-      // }
-      // else{
-      this.scene.add(pointMesh);
-      // }
-      pointMesh.add(plane.mesh);
-
-    }
-
     if (this.planes.length === 6) {
-      // calculate parent offset
+      console.log(this.planes);
+      const p = this.plane2Dto3D(newPlanes[0]);
+      const p2 = this.plane2Dto3D(newPlanes[1]);
+      const s = p.pivotPoint;
+      const s2 = p2.pivotPoint;
 
-      // child plane test
-      const childPlane = new THREE.Shape();
-      childPlane.moveTo(30, -30);
-      childPlane.lineTo(30, -200);
-      childPlane.lineTo(200, -200);
-      childPlane.lineTo(200, -30);
-      childPlane.lineTo(30, -30);
-      var geometry = new THREE.ExtrudeGeometry(childPlane, extrudeSettings);
-      let material = new THREE.MeshPhongMaterial({ color: "#FF0000" });
-      const childPlaneMesh = new THREE.Mesh(geometry, material);
-      // this.planes[1].pivot.getWorldPosition();    
-      const pivotPos = this.planes[5].pivotPoint;
-      childPlaneMesh.position.set(-pivotPos.x, pivotPos.y, 0);
-      this.planes[5].pivot.add(childPlaneMesh);
+      p.mesh.position.set(-s.x, s.y, 0);
+      var pointGeo = new THREE.SphereGeometry(10);
+      var pointMesh = new THREE.Mesh(pointGeo, new THREE.MeshPhongMaterial({ color: p.color }));
+      pointMesh.position.set(s.x, -s.y, 0);
+      p.pivot = pointMesh;
+
+      console.log('s ', s);
+      console.log('s2 ', s2);
+      var pointGeo2 = new THREE.SphereGeometry(10);
+      var pointMesh2 = new THREE.Mesh(pointGeo2, new THREE.MeshPhongMaterial({ color: p2.color,  transparent: true, opacity: 0.3 }));
+      pointMesh2.position.set(0, -s2.y + s.y, 0);
+      p2.mesh.position.set(-s2.x, s2.y, 0);
+      p2.pivot = pointMesh2;
+
+      this.camera.lookAt(p2.pivot.getWorldPosition());
+
+      pointMesh.add(p.mesh);
+      p.pivot.add(p2.pivot);
+      p2.pivot.add(p2.mesh);
+      this.scene.add(pointMesh);
     }
 
+    else {
+      for (const plane of newPlanes) {
+        const p = this.plane2Dto3D(plane);
+        const s = plane.pivotPoint;
 
+        p.mesh.position.set(-s.x, s.y, 0);
+        var pointGeo = new THREE.SphereGeometry(10);
+        var pointMesh = new THREE.Mesh(pointGeo, new THREE.MeshPhongMaterial({ color: "#ffffff", transparent: true, opacity: 0.3 }));
+        pointMesh.position.set(s.x, -s.y, 0);
+        p.pivot = pointMesh;
+
+        this.scene.add(pointMesh);
+        pointMesh.add(plane.mesh);
+
+      }
+    }
+    this.setPlanePositions();
+  }
+
+  private plane2Dto3D(plane: Plane): Plane3d {
+    const plane3d = plane as Plane3d;
+    var planeShape = new THREE.Shape();
+    planeShape.moveTo(plane.points[0].x, -plane.points[0].y);
+    for (const point of plane.points) {
+      planeShape.lineTo(point.x, -point.y);
+    }
+    var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+    var geometry = new THREE.ExtrudeGeometry(planeShape, extrudeSettings);
+    let material = new THREE.MeshPhongMaterial({ color: plane.color, transparent: true, opacity: 0.3 });
+    plane3d.mesh = new THREE.Mesh(geometry, material);
+    return plane3d;
   }
 
   public init() {
@@ -89,13 +101,13 @@ export class Sketch3d {
       view = {
         angle: 45,
         aspect: screen.width / screen.height,
-        near: 0.1,
+        near: 100,
         far: 10000
       };
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(view.angle, view.aspect, view.near, view.far);
-    this.renderer = new THREE.WebGLRenderer();
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
 
     this.scene.add(this.camera);
     this.scene.add(new THREE.AxisHelper(2));
@@ -132,14 +144,21 @@ export class Sketch3d {
       this.direction *= -1;
     }
 
+    this.setPlanePositions();
+  }
+  private setPlanePositions() {
     for (const plane of this.planes) {
-      console.log(plane.pivot.getWorldPosition());
-      switch (plane.orientation) {
-        case OrientationKind.Vertical:
-          break;
-        case OrientationKind.Horizontal:
-          plane.pivot.setRotationFromEuler(new THREE.Euler(this.accumulatedRotation, 0, 0));
-          break;
+      if (plane.pivot) {
+        switch (plane.orientation) {
+          case OrientationKind.Vertical:
+            if (plane.parent) {
+              plane.pivot.setRotationFromEuler(new THREE.Euler(-this.accumulatedRotation, 0, 0));
+            }
+            break;
+          case OrientationKind.Horizontal:
+            plane.pivot.setRotationFromEuler(new THREE.Euler(this.accumulatedRotation, 0, 0));
+            break;
+        }
       }
     }
   }
