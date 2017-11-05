@@ -34,30 +34,26 @@ export class Sketch3d {
     if (this.planes.length === 6) {
       console.log(this.planes);
       const p = this.plane2Dto3D(newPlanes[0]);
-      const p2 = this.plane2Dto3D(newPlanes[1]);
       const s = p.pivotPoint;
-      const s2 = p2.pivotPoint;
 
       p.mesh.position.set(-s.x, s.y, 0);
       var pointGeo = new THREE.SphereGeometry(10);
       var pointMesh = new THREE.Mesh(pointGeo, new THREE.MeshPhongMaterial({ color: p.color }));
       pointMesh.position.set(s.x, -s.y, 0);
       p.pivot = pointMesh;
+      pointMesh.add(p.mesh);
+      this.scene.add(pointMesh);
 
-      console.log('s ', s);
-      console.log('s2 ', s2);
+      const p2 = this.plane2Dto3D(newPlanes[1]);
+      const s2 = p2.pivotPoint;
       var pointGeo2 = new THREE.SphereGeometry(10);
-      var pointMesh2 = new THREE.Mesh(pointGeo2, new THREE.MeshPhongMaterial({ color: p2.color,  transparent: true, opacity: 0.3 }));
-      pointMesh2.position.set(0, -s2.y + s.y, 0);
+      var pointMesh2 = new THREE.Mesh(pointGeo2, new THREE.MeshPhongMaterial({ color: p2.color, transparent: true, opacity: 0.3 }));
+      pointMesh2.position.set(s2.x - p2.parent.pivotPoint.x, -s2.y + p2.parent.pivotPoint.y, 0);
       p2.mesh.position.set(-s2.x, s2.y, 0);
       p2.pivot = pointMesh2;
 
-      this.camera.lookAt(p2.pivot.getWorldPosition());
-
-      pointMesh.add(p.mesh);
-      p.pivot.add(p2.pivot);
+      (p2.parent as Plane3d).pivot.add(p2.pivot);
       p2.pivot.add(p2.mesh);
-      this.scene.add(pointMesh);
     }
 
     else {
@@ -86,9 +82,9 @@ export class Sketch3d {
     for (const point of plane.points) {
       planeShape.lineTo(point.x, -point.y);
     }
-    var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+    var extrudeSettings = { amount: 0.1, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
     var geometry = new THREE.ExtrudeGeometry(planeShape, extrudeSettings);
-    let material = new THREE.MeshPhongMaterial({ color: plane.color, transparent: true, opacity: 0.3 });
+    let material = new THREE.MeshPhongMaterial({ color: plane.color });
     plane3d.mesh = new THREE.Mesh(geometry, material);
     return plane3d;
   }
@@ -101,8 +97,8 @@ export class Sketch3d {
       view = {
         angle: 45,
         aspect: screen.width / screen.height,
-        near: 100,
-        far: 10000
+        near: 1000,
+        far: 2500
       };
 
     this.scene = new THREE.Scene();
@@ -143,7 +139,6 @@ export class Sketch3d {
     if (Math.abs(this.accumulatedRotation) + 0.05 > Math.PI) {
       this.direction *= -1;
     }
-
     this.setPlanePositions();
   }
   private setPlanePositions() {
