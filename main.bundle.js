@@ -129,6 +129,7 @@ var AppModule = (function () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_app_fold_feature__ = __webpack_require__("../../../../../src/app/fold-feature.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_app_edge__ = __webpack_require__("../../../../../src/app/edge.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_app_plane__ = __webpack_require__("../../../../../src/app/plane.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_app_sketch_sketch_component__ = __webpack_require__("../../../../../src/app/sketch/sketch.component.ts");
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -142,12 +143,14 @@ var __extends = (this && this.__extends) || (function () {
 
 
 
+
 var BoxFold = (function (_super) {
     __extends(BoxFold, _super);
     function BoxFold(start, end) {
         var _this = _super.call(this) || this;
         _this.start = start;
         _this.end = end;
+        _this.parentPlane = __WEBPACK_IMPORTED_MODULE_3_app_sketch_sketch_component__["a" /* SketchComponent */].activeSketch.planeAt(_this.start);
         return _this;
     }
     BoxFold.prototype.moveEnd = function (to) {
@@ -189,9 +192,10 @@ var BoxFold = (function (_super) {
             var s1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Edge */](h2.end, h1.end, this);
             es.push(h0, e0, h1, s0, e1, h2, s1);
             // console.log(this.drivingFold.feature.planes());
-            var topPlane = new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([h0, e0, h1, s0], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Horizontal, this.drivingFold.feature.topPlane());
+            // const parentPlane= SketchComponent.activeSketch.planeAt(h0.start);
+            var topPlane = new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([h0, e0, h1, s0], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Horizontal, this, this.parentPlane);
             this.cachedPlanes.push(topPlane);
-            this.cachedPlanes.push((new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([e1, h2, s1, h1.reverse()], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Vertical, topPlane)));
+            this.cachedPlanes.push((new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([e1, h2, s1, h1.reverse()], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Vertical, this, topPlane)));
         }
         else {
             // otherwise, we only have 4 edges
@@ -207,7 +211,7 @@ var BoxFold = (function (_super) {
             h0.kind = __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* EdgeKind */].Cut;
             h2.kind = __WEBPACK_IMPORTED_MODULE_1_app_edge__["b" /* EdgeKind */].Cut;
             es.push(h0, e0, h2, s0);
-            this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */](es, __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Vertical));
+            this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */](es, __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Vertical, this));
         }
         this.cachedEdges = es;
         return es;
@@ -271,8 +275,8 @@ var Card = (function (_super) {
         _this.h2 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Edge */](_this.e1.end, new __WEBPACK_IMPORTED_MODULE_1_app_edge__["c" /* Point */](0, height), _this);
         _this.s1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Edge */](_this.h2.end, _this.h1.start, _this);
         _this.centerFold = _this.h1;
-        _this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([_this.s0, _this.h1, _this.e0, _this.h0], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Vertical));
-        _this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([_this.h1.reverse(), _this.s1.reverse(), _this.h2.reverse(), _this.e1.reverse()], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Horizontal));
+        _this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([_this.s0, _this.h1, _this.e0, _this.h0], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Vertical, _this));
+        _this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([_this.h1.reverse(), _this.s1.reverse(), _this.h2.reverse(), _this.e1.reverse()], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Horizontal, _this));
         return _this;
     }
     Card.prototype.edges = function () {
@@ -404,9 +408,9 @@ var OrientationKind;
 })(OrientationKind || (OrientationKind = {}));
 // type Polygon = any;
 var Plane = (function () {
-    function Plane(edges, orientation, parent) {
+    function Plane(edges, orientation, feature, parent) {
+        this.feature = feature;
         this.polygon = new __WEBPACK_IMPORTED_MODULE_2_polygon__(edges.map(function (e) { return e.start; }));
-        // console.log(this.polygon);
         this.pivotPoint = __WEBPACK_IMPORTED_MODULE_1_lodash__["minBy"](this.polygon.points, function (p) { return p.x + p.y; });
         this.orientation = orientation;
         this.parent = parent;
@@ -426,7 +430,7 @@ var Plane = (function () {
         var numParents = 0.2;
         var parent = this;
         while (parent = parent.parent) {
-            numParents += .2;
+            numParents += .1;
         }
         switch (this.orientation) {
             case OrientationKind.Horizontal:
@@ -454,14 +458,15 @@ var Plane = (function () {
             regions: [this.polygon.toArray()],
             inverted: false
         });
-        if (cuts.regions[0]) {
-            // console.log('cut a bitch', cuts);
-            var cutPoly = new __WEBPACK_IMPORTED_MODULE_2_polygon__(cuts.regions[0]);
-            // console.log(cutPoly)
-            p.polygon = cutPoly;
-            var newPlane = new Plane([], this.orientation, this.parent);
-            newPlane.polygon = cutPoly;
-            // return newPlane;
+        for (var _i = 0, _a = cuts.regions; _i < _a.length; _i++) {
+            var region = _a[_i];
+            if (region.length > 4) {
+                var cutPoly = new __WEBPACK_IMPORTED_MODULE_2_polygon__(region);
+                p.polygon = cutPoly;
+                var newPlane = new Plane([], this.orientation, this.feature, this.parent);
+                newPlane.polygon = cutPoly;
+                break;
+            }
         }
         return this;
     };
@@ -529,7 +534,9 @@ var SketchComponent = (function () {
         this.previousFeatures = [];
         var card = new __WEBPACK_IMPORTED_MODULE_2_app_card__["a" /* Card */](600, 800);
         this.previousFeatures.push(card);
+        SketchComponent_1.activeSketch = this;
     }
+    SketchComponent_1 = SketchComponent;
     SketchComponent.prototype.features = function () {
         var features = this.previousFeatures;
         if (this.currentFeature) {
@@ -540,10 +547,23 @@ var SketchComponent = (function () {
     ;
     SketchComponent.prototype.handleMouseDown = function (e) {
         var p = new __WEBPACK_IMPORTED_MODULE_3_app_edge__["c" /* Point */](e.clientX, e.clientY);
+        console.log(this.featureAt(p));
+        console.log(this.planeAt(p));
         this.currentFeature = new __WEBPACK_IMPORTED_MODULE_1_app_box_fold__["a" /* BoxFold */](p, p);
     };
+    SketchComponent.prototype.featureAt = function (p) {
+        return this.planeAt(p).feature || null;
+    };
+    SketchComponent.prototype.planeAt = function (p) {
+        for (var _i = 0, _a = __WEBPACK_IMPORTED_MODULE_4_lodash__["flatten"](this.features().map(function (f) { return f.planes(); })); _i < _a.length; _i++) {
+            var plane = _a[_i];
+            if (plane.polygon.containsPoint(p)) {
+                return plane;
+            }
+        }
+        return null;
+    };
     SketchComponent.prototype.handleMouseUp = function (e) {
-        // this.reDrawSketch();
         this.sketch3d.addFeature(this.currentFeature);
         this.previousFeatures.push(this.currentFeature);
         delete this.currentFeature;
@@ -569,12 +589,7 @@ var SketchComponent = (function () {
         }
     };
     SketchComponent.prototype.ngOnInit = function () {
-        // this.container = this.elementRef.nativeElement;
-        // this.sketch3d = new Sketch3d(_.flatten(this.features()), this.container);
-        // this.sketch3d.init();
-        // this.sketch3d.addFeature(this.previousFeatures[0]);
         this.reDrawSketch();
-        // this.sketch3d.init();
     };
     SketchComponent.prototype.reDrawSketch = function () {
         this.container = this.elementRef.nativeElement;
@@ -589,7 +604,7 @@ var SketchComponent = (function () {
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["_3" /* ViewChild */])('container'),
         __metadata("design:type", __WEBPACK_IMPORTED_MODULE_0__angular_core__["r" /* ElementRef */])
     ], SketchComponent.prototype, "elementRef", void 0);
-    SketchComponent = __decorate([
+    SketchComponent = SketchComponent_1 = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["m" /* Component */])({
             selector: 'app-sketch',
             template: __webpack_require__("../../../../../src/app/sketch/sketch.component.html"),
@@ -598,6 +613,7 @@ var SketchComponent = (function () {
         __metadata("design:paramtypes", [])
     ], SketchComponent);
     return SketchComponent;
+    var SketchComponent_1;
 }());
 
 
@@ -639,20 +655,17 @@ var Sketch3d = (function () {
         this.direction = -1;
         this.features = features;
         this.container = container;
-        // this.container.innerHTML = "";
     }
     Sketch3d.prototype.addFeature = function (feature) {
-        console.log(feature);
         this.features.push(feature);
-        // this.features = [feature]
         var newPlanes = feature.planes();
         (_a = this.planes).push.apply(_a, newPlanes);
         for (var _i = 0, newPlanes_1 = newPlanes; _i < newPlanes_1.length; _i++) {
             var plane = newPlanes_1[_i];
             var p = this.plane2Dto3D(plane);
             var s = p.pivotPoint;
-            var pointGeo = new __WEBPACK_IMPORTED_MODULE_1_three__["k" /* SphereGeometry */](10);
-            var pointMesh = new __WEBPACK_IMPORTED_MODULE_1_three__["e" /* Mesh */](pointGeo, new __WEBPACK_IMPORTED_MODULE_1_three__["f" /* MeshPhongMaterial */]({ color: p.color, transparent: true, opacity: 0.3 }));
+            var pointGeo = new __WEBPACK_IMPORTED_MODULE_1_three__["k" /* SphereGeometry */](5);
+            var pointMesh = new __WEBPACK_IMPORTED_MODULE_1_three__["e" /* Mesh */](pointGeo, new __WEBPACK_IMPORTED_MODULE_1_three__["f" /* MeshPhongMaterial */]({ color: p.color, transparent: true, opacity: 1 }));
             p.pivot = pointMesh;
             if (plane.parent) {
                 var parent_1 = plane.parent;
@@ -674,8 +687,7 @@ var Sketch3d = (function () {
                 pointMesh.add(plane.mesh);
             }
         }
-        console.log(this.planes);
-        console.log(this.planes);
+        // cut out holes for new planes
         for (var _b = 0, newPlanes_2 = newPlanes; _b < newPlanes_2.length; _b++) {
             var plane = newPlanes_2[_b];
             for (var _c = 0, _d = this.planes; _c < _d.length; _c++) {
@@ -687,8 +699,20 @@ var Sketch3d = (function () {
                     var s = p3.pivotPoint;
                     p3.pivot.add(p3.mesh);
                 }
-                // if(){
-                // }
+            }
+        }
+        // again... TODO: this is a terrible hack
+        for (var _e = 0, newPlanes_3 = newPlanes; _e < newPlanes_3.length; _e++) {
+            var plane = newPlanes_3[_e];
+            for (var _f = 0, _g = this.planes; _f < _g.length; _f++) {
+                var p3 = _g[_f];
+                plane.cutBy(p3);
+                if (p3.points.length > 4) {
+                    p3.pivot.remove(p3.mesh);
+                    var p3New = this.plane2Dto3D(p3);
+                    var s = p3.pivotPoint;
+                    p3.pivot.add(p3.mesh);
+                }
             }
         }
         // }
@@ -705,7 +729,7 @@ var Sketch3d = (function () {
         }
         var extrudeSettings = { amount: 0.1, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
         var geometry = new __WEBPACK_IMPORTED_MODULE_1_three__["d" /* ExtrudeGeometry */](planeShape, extrudeSettings);
-        var material = new __WEBPACK_IMPORTED_MODULE_1_three__["f" /* MeshPhongMaterial */]({ color: plane.color });
+        var material = new __WEBPACK_IMPORTED_MODULE_1_three__["f" /* MeshPhongMaterial */]({ color: "#666" });
         plane3d.mesh = new __WEBPACK_IMPORTED_MODULE_1_three__["e" /* Mesh */](geometry, material);
         var s = plane.pivotPoint;
         // if(plane.feature){
@@ -725,7 +749,7 @@ var Sketch3d = (function () {
         };
         this.scene = new __WEBPACK_IMPORTED_MODULE_1_three__["i" /* Scene */]();
         this.camera = new __WEBPACK_IMPORTED_MODULE_1_three__["g" /* PerspectiveCamera */](view.angle, view.aspect, view.near, view.far);
-        this.renderer = new __WEBPACK_IMPORTED_MODULE_1_three__["n" /* WebGLRenderer */]({ antialias: false });
+        this.renderer = new __WEBPACK_IMPORTED_MODULE_1_three__["n" /* WebGLRenderer */]({ antialias: true });
         this.scene.add(this.camera);
         this.scene.add(new __WEBPACK_IMPORTED_MODULE_1_three__["a" /* AxisHelper */](2));
         this.camera.position.set(1500, 0, 1500);
@@ -753,7 +777,7 @@ var Sketch3d = (function () {
         this.setPlanePositions();
     };
     Sketch3d.prototype.setPlanePositions = function () {
-        console.log(this.planes);
+        // console.log(this.planes);
         for (var _i = 0, _a = this.planes; _i < _a.length; _i++) {
             var plane = _a[_i];
             if (plane.pivot) {
