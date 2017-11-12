@@ -3,6 +3,7 @@ import * as THREE from "three";
 import * as _ from "lodash";
 import * as Polygon from "polygon";
 import * as PolyBool from "polybooljs";
+import { FoldFeature } from "app/fold-feature";
 
 export enum OrientationKind {
     Vertical,
@@ -22,6 +23,7 @@ export class Plane {
 
     public color: THREE.Color;
     public pivotPoint: Point;
+    public feature: FoldFeature;
     public parent?: Plane;
 
     public svgColor(): string {
@@ -31,7 +33,7 @@ export class Plane {
         let numParents = 0.2;
         let parent: Plane = this;
         while (parent = parent.parent) {
-            numParents += .2;
+            numParents += .1;
         }
         switch (this.orientation) {
             case OrientationKind.Horizontal:
@@ -68,7 +70,7 @@ export class Plane {
             if (region.length > 4) {
                 const cutPoly = new Polygon(region);
                 p.polygon = cutPoly
-                const newPlane = new Plane([], this.orientation, this.parent);
+                const newPlane = new Plane([], this.orientation, this.feature, this.parent);
                 newPlane.polygon = cutPoly;
                 break;
             }
@@ -76,7 +78,8 @@ export class Plane {
         return this;
     }
 
-    constructor(edges: Edge[], orientation, parent?: Plane) {
+    constructor(edges: Edge[], orientation, feature: FoldFeature, parent?: Plane) {
+        this.feature = feature;
         this.polygon = new Polygon(edges.map((e) => e.start));
         this.pivotPoint = _.minBy(this.polygon.points, (p) => { return p.x + p.y });
         this.orientation = orientation;

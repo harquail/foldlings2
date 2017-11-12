@@ -21,7 +21,6 @@ export class Sketch3d {
   constructor(features: FoldFeature[], container: HTMLElement) {
     this.features = features;
     this.container = container;
-    // this.container.innerHTML = "";
   }
 
   public addFeature(feature: FoldFeature) {

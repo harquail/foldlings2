@@ -1,9 +1,10 @@
 import { FoldFeature } from "app/fold-feature";
 import { Point, Edge, EdgeKind } from "app/edge";
 import { Plane, OrientationKind } from "app/plane";
-
+import { SketchComponent } from "app/sketch/sketch.component";
 
 export class BoxFold extends FoldFeature {
+    private parentPlane: Plane;
     private start: Point;
     private end: Point;
     private cachedEdges?: Edge[];
@@ -51,9 +52,10 @@ export class BoxFold extends FoldFeature {
             const s1 = new Edge(h2.end, h1.end, this);
             es.push(h0, e0, h1, s0, e1, h2, s1);
             // console.log(this.drivingFold.feature.planes());
-            const topPlane = new Plane([h0, e0, h1, s0], OrientationKind.Horizontal, this.drivingFold.feature.topPlane());
+            // const parentPlane= SketchComponent.activeSketch.planeAt(h0.start);
+            const topPlane = new Plane([h0, e0, h1, s0], OrientationKind.Horizontal, this, this.parentPlane);
             this.cachedPlanes.push(topPlane);
-            this.cachedPlanes.push((new Plane([e1, h2, s1, h1.reverse()], OrientationKind.Vertical, topPlane)));
+            this.cachedPlanes.push((new Plane([e1, h2, s1, h1.reverse()], OrientationKind.Vertical, this, topPlane)));
         }
         else {
             // otherwise, we only have 4 edges
@@ -69,7 +71,7 @@ export class BoxFold extends FoldFeature {
             h0.kind = EdgeKind.Cut;
             h2.kind = EdgeKind.Cut;
             es.push(h0, e0, h2, s0);
-            this.cachedPlanes.push(new Plane(es, OrientationKind.Vertical));
+            this.cachedPlanes.push(new Plane(es, OrientationKind.Vertical, this));
         }
 
         this.cachedEdges = es;
@@ -102,5 +104,6 @@ export class BoxFold extends FoldFeature {
         super();
         this.start = start;
         this.end = end;
+        this.parentPlane = SketchComponent.activeSketch.planeAt(this.start);
     }
 }

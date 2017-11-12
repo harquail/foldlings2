@@ -18,6 +18,7 @@ export class SketchComponent implements OnInit {
   @ViewChild('container') elementRef: ElementRef;
   private container: HTMLElement;
   private sketch3d: Sketch3d;
+  public static activeSketch: SketchComponent;
 
   private currentFeature?: BoxFold;
   private previousFeatures: FoldFeature[] = [];
@@ -25,6 +26,7 @@ export class SketchComponent implements OnInit {
   constructor() {
     const card = new Card(600, 800);
     this.previousFeatures.push(card);
+    SketchComponent.activeSketch = this;
   }
 
   public features() {
@@ -37,11 +39,27 @@ export class SketchComponent implements OnInit {
 
   handleMouseDown(e: MouseEvent) {
     const p = new Point(e.clientX, e.clientY);
+    console.log(this.featureAt(p));
+    console.log(this.planeAt(p));
     this.currentFeature = new BoxFold(p, p);
+
+  }
+
+
+  public featureAt(p: Point): FoldFeature | null {
+    return this.planeAt(p).feature || null;
+  }
+
+  public planeAt(p: Point): Plane | null {
+    for (const plane of _.flatten(this.features().map((f) => f.planes()))) {
+      if (plane.polygon.containsPoint(p)) {
+        return plane;
+      }
+    }
+    return null;
   }
 
   handleMouseUp(e: MouseEvent) {
-    // this.reDrawSketch();
     this.sketch3d.addFeature(this.currentFeature);
     this.previousFeatures.push(this.currentFeature);
     delete this.currentFeature;
@@ -68,20 +86,14 @@ export class SketchComponent implements OnInit {
   }
 
   ngOnInit() {
-    // this.container = this.elementRef.nativeElement;
-    // this.sketch3d = new Sketch3d(_.flatten(this.features()), this.container);
-    // this.sketch3d.init();
-    // this.sketch3d.addFeature(this.previousFeatures[0]);
     this.reDrawSketch();
-    // this.sketch3d.init();
   }
 
-  reDrawSketch(){
+  reDrawSketch() {
     this.container = this.elementRef.nativeElement;
     this.sketch3d = new Sketch3d(_.flatten(this.features()), this.container);
     this.sketch3d.init();
-    for(const feature of this.features()){
-
+    for (const feature of this.features()) {
       this.sketch3d.addFeature(feature);
     }
   }
