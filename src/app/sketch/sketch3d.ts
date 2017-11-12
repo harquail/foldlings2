@@ -25,18 +25,16 @@ export class Sketch3d {
   }
 
   public addFeature(feature: FoldFeature) {
-    console.log(feature);
     this.features.push(feature);
 
-    // this.features = [feature]
-    const newPlanes = feature.planes();  
-      this.planes.push(...newPlanes);
-    
+    const newPlanes = feature.planes();
+    this.planes.push(...newPlanes);
+
     for (const plane of newPlanes) {
       const p = this.plane2Dto3D(plane);
       const s = p.pivotPoint;
-      var pointGeo = new THREE.SphereGeometry(10);
-      var pointMesh = new THREE.Mesh(pointGeo, new THREE.MeshPhongMaterial({ color: p.color, transparent: true, opacity: 0.3 }));
+      var pointGeo = new THREE.SphereGeometry(5);
+      var pointMesh = new THREE.Mesh(pointGeo, new THREE.MeshPhongMaterial({ color: p.color, transparent: true, opacity: 1 }));
       p.pivot = pointMesh;
 
       if (plane.parent) {
@@ -61,21 +59,32 @@ export class Sketch3d {
 
     }
 
-    console.log(this.planes);
-    console.log(this.planes);
+
+    // cut out holes for new planes
     for (const plane of newPlanes) {
       for (let p3 of this.planes) {
         plane.cutBy(p3);
-        if(p3.points.length > 4){
+        if (p3.points.length > 4) {
           p3.pivot.remove(p3.mesh);
           const p3New = this.plane2Dto3D(p3);
           const s = p3.pivotPoint;
           p3.pivot.add(p3.mesh);
-          
+
         }
-        // if(){
-          
-        // }
+      }
+    }
+
+    // again... TODO: this is a terrible hack
+    for (const plane of newPlanes) {
+      for (let p3 of this.planes) {
+        plane.cutBy(p3);
+        if (p3.points.length > 4) {
+          p3.pivot.remove(p3.mesh);
+          const p3New = this.plane2Dto3D(p3);
+          const s = p3.pivotPoint;
+          p3.pivot.add(p3.mesh);
+
+        }
       }
     }
     // }
@@ -91,11 +100,11 @@ export class Sketch3d {
     }
     var extrudeSettings = { amount: 0.1, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
     var geometry = new THREE.ExtrudeGeometry(planeShape, extrudeSettings);
-    let material = new THREE.MeshPhongMaterial({ color: plane.color });
+    let material = new THREE.MeshPhongMaterial({ color: "#666" });
     plane3d.mesh = new THREE.Mesh(geometry, material);
-    const s = plane.pivotPoint;   
+    const s = plane.pivotPoint;
     // if(plane.feature){
-      plane3d.mesh.position.set(-s.x, s.y, 0);
+    plane3d.mesh.position.set(-s.x, s.y, 0);
     // } 
 
     return plane3d;
@@ -115,7 +124,7 @@ export class Sketch3d {
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(view.angle, view.aspect, view.near, view.far);
-    this.renderer = new THREE.WebGLRenderer({ antialias: false });
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
 
     this.scene.add(this.camera);
     this.scene.add(new THREE.AxisHelper(2));
@@ -154,7 +163,7 @@ export class Sketch3d {
     this.setPlanePositions();
   }
   private setPlanePositions() {
-    console.log(this.planes);
+    // console.log(this.planes);
     for (const plane of this.planes) {
       if (plane.pivot) {
         switch (plane.orientation) {

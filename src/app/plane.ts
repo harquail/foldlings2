@@ -64,22 +64,20 @@ export class Plane {
                 inverted: false
             });
 
-        if (cuts.regions[0]) {
-            // console.log('cut a bitch', cuts);
-            const cutPoly = new Polygon(cuts.regions[0]);
-            // console.log(cutPoly)
-            p.polygon = cutPoly
-            const newPlane = new Plane([], this.orientation, this.parent);
-            newPlane.polygon = cutPoly;
-            // return newPlane;
+        for (const region of cuts.regions) {
+            if (region.length > 4) {
+                const cutPoly = new Polygon(region);
+                p.polygon = cutPoly
+                const newPlane = new Plane([], this.orientation, this.parent);
+                newPlane.polygon = cutPoly;
+                break;
+            }
         }
         return this;
     }
 
     constructor(edges: Edge[], orientation, parent?: Plane) {
         this.polygon = new Polygon(edges.map((e) => e.start));
-        // console.log(this.polygon);
-
         this.pivotPoint = _.minBy(this.polygon.points, (p) => { return p.x + p.y });
         this.orientation = orientation;
         this.parent = parent;
