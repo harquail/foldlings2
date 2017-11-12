@@ -34,7 +34,7 @@ export class Card extends FoldFeature {
         this.s1 = new Edge(this.h2.end, this.h1.start, this);
         this.centerFold = this.h1;
         this.cachedPlanes.push(new Plane([this.s0, this.h1, this.e0, this.h0], OrientationKind.Vertical));
-        this.cachedPlanes.push(new Plane([this.h1, this.e1, this.h2, this.s1], OrientationKind.Horizontal));
+        this.cachedPlanes.push(new Plane([this.h1.reverse(), this.s1.reverse(), this.h2.reverse(), this.e1.reverse()], OrientationKind.Horizontal));
     }
     public edges() {
         return [this.s0, this.h1, this.e0, this.h0, this.e1, this.h2, this.s1];

@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --open --aot",
     "build": "ng build --env=prod --base-href='https://harquail.github.io/foldlings2/'",
     "test": "ng test",
     "lint": "ng lint",
@@ -25,6 +25,7 @@
     "@angular/router": "^5.0.0",
     "core-js": "^2.4.1",
     "lodash": "^4.17.4",
+    "polybooljs": "^1.2.0",
     "polygon": "^1.0.2",
     "rxjs": "^5.5.2",
     "three": "^0.87.1",

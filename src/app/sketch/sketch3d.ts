@@ -2,7 +2,7 @@ import { Plane, OrientationKind } from "app/plane";
 import * as THREE from 'three';
 import { FoldFeature } from "app/fold-feature";
 import * as _ from "lodash";
-import * as polygon from "polygon";
+import * as Polygon from "polygon";
 
 export class Plane3d extends Plane {
   mesh?: THREE.Mesh
@@ -21,23 +21,25 @@ export class Sketch3d {
   constructor(features: FoldFeature[], container: HTMLElement) {
     this.features = features;
     this.container = container;
+    // this.container.innerHTML = "";
   }
 
   public addFeature(feature: FoldFeature) {
+    console.log(feature);
     this.features.push(feature);
 
-    this.features = [feature]
-    const newPlanes = _.flatten(this.features.map((feature) => { return feature.planes() })) as Plane3d[];
-    this.planes.push(...newPlanes)
-
+    // this.features = [feature]
+    const newPlanes = feature.planes();  
+      this.planes.push(...newPlanes);
+    
     for (const plane of newPlanes) {
       const p = this.plane2Dto3D(plane);
       const s = p.pivotPoint;
       var pointGeo = new THREE.SphereGeometry(10);
       var pointMesh = new THREE.Mesh(pointGeo, new THREE.MeshPhongMaterial({ color: p.color, transparent: true, opacity: 0.3 }));
       p.pivot = pointMesh;
+
       if (plane.parent) {
-        // maybe useful later?
         let parent = plane.parent;
         const totalParentOffset = new THREE.Vector2(0, 0);
         while (parent) {
@@ -46,19 +48,35 @@ export class Sketch3d {
           parent = parent.parent;
         }
         pointMesh.position.set(s.x - p.parent.pivotPoint.x, -s.y + p.parent.pivotPoint.y, 0);
-        p.mesh.position.set(-s.x, s.y, 0);
-
+        // p.mesh.position.set(-s.x, s.y, 0);
         (p.parent as Plane3d).pivot.add(p.pivot);
         p.pivot.add(p.mesh);
       }
       else {
-        p.mesh.position.set(-s.x, s.y, 0);
+        // p.mesh.position.set(-s.x, s.y, 0);
         pointMesh.position.set(s.x, -s.y, 0);
-
         this.scene.add(pointMesh);
-        pointMesh.add(plane.mesh);
+        pointMesh.add((plane as Plane3d).mesh);
       }
 
+    }
+
+    console.log(this.planes);
+    console.log(this.planes);
+    for (const plane of newPlanes) {
+      for (let p3 of this.planes) {
+        plane.cutBy(p3);
+        if(p3.points.length > 4){
+          p3.pivot.remove(p3.mesh);
+          const p3New = this.plane2Dto3D(p3);
+          const s = p3.pivotPoint;
+          p3.pivot.add(p3.mesh);
+          
+        }
+        // if(){
+          
+        // }
+      }
     }
     // }
     this.setPlanePositions();
@@ -75,6 +93,11 @@ export class Sketch3d {
     var geometry = new THREE.ExtrudeGeometry(planeShape, extrudeSettings);
     let material = new THREE.MeshPhongMaterial({ color: plane.color });
     plane3d.mesh = new THREE.Mesh(geometry, material);
+    const s = plane.pivotPoint;   
+    // if(plane.feature){
+      plane3d.mesh.position.set(-s.x, s.y, 0);
+    // } 
+
     return plane3d;
   }
 
@@ -131,6 +154,7 @@ export class Sketch3d {
     this.setPlanePositions();
   }
   private setPlanePositions() {
+    console.log(this.planes);
     for (const plane of this.planes) {
       if (plane.pivot) {
         switch (plane.orientation) {
