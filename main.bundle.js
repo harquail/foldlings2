@@ -189,9 +189,9 @@ var BoxFold = (function (_super) {
             var s1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Edge */](h2.end, h1.end, this);
             es.push(h0, e0, h1, s0, e1, h2, s1);
             // console.log(this.drivingFold.feature.planes());
-            var topPlane = (new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([e1, h2, s1, h1.reverse()], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Vertical, this.drivingFold.feature.topPlane()));
+            var topPlane = new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([h0, e0, h1, s0], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Horizontal, this.drivingFold.feature.topPlane());
             this.cachedPlanes.push(topPlane);
-            this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([h0, e0, h1, s0], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Horizontal, topPlane));
+            this.cachedPlanes.push((new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([e1, h2, s1, h1.reverse()], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Vertical, topPlane)));
         }
         else {
             // otherwise, we only have 4 edges
@@ -272,7 +272,7 @@ var Card = (function (_super) {
         _this.s1 = new __WEBPACK_IMPORTED_MODULE_1_app_edge__["a" /* Edge */](_this.h2.end, _this.h1.start, _this);
         _this.centerFold = _this.h1;
         _this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([_this.s0, _this.h1, _this.e0, _this.h0], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Vertical));
-        _this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([_this.h1, _this.e1, _this.h2, _this.s1], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Horizontal));
+        _this.cachedPlanes.push(new __WEBPACK_IMPORTED_MODULE_2_app_plane__["b" /* Plane */]([_this.h1.reverse(), _this.s1.reverse(), _this.h2.reverse(), _this.e1.reverse()], __WEBPACK_IMPORTED_MODULE_2_app_plane__["a" /* OrientationKind */].Horizontal));
         return _this;
     }
     Card.prototype.edges = function () {
@@ -389,6 +389,12 @@ var FoldFeature = (function () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__("../../../../three/build/three.module.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash__ = __webpack_require__("../../../../lodash/lodash.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_lodash__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_polygon__ = __webpack_require__("../../../../polygon/polygon.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_polygon___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_polygon__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_polybooljs__ = __webpack_require__("../../../../polybooljs/index.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_polybooljs___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_polybooljs__);
+
+
 
 
 var OrientationKind;
@@ -396,42 +402,68 @@ var OrientationKind;
     OrientationKind[OrientationKind["Vertical"] = 0] = "Vertical";
     OrientationKind[OrientationKind["Horizontal"] = 1] = "Horizontal";
 })(OrientationKind || (OrientationKind = {}));
+// type Polygon = any;
 var Plane = (function () {
     function Plane(edges, orientation, parent) {
-        this.points = [];
-        for (var _i = 0, edges_1 = edges; _i < edges_1.length; _i++) {
-            var edge = edges_1[_i];
-            this.points.push(edge.start);
-        }
-        this.pivotPoint = __WEBPACK_IMPORTED_MODULE_1_lodash__["minBy"](this.points, function (p) { return p.x + p.y; });
+        this.polygon = new __WEBPACK_IMPORTED_MODULE_2_polygon__(edges.map(function (e) { return e.start; }));
+        // console.log(this.polygon);
+        this.pivotPoint = __WEBPACK_IMPORTED_MODULE_1_lodash__["minBy"](this.polygon.points, function (p) { return p.x + p.y; });
         this.orientation = orientation;
         this.parent = parent;
         this.color = this.randomColor();
     }
+    Object.defineProperty(Plane.prototype, "points", {
+        get: function () {
+            return this.polygon.points;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Plane.prototype.svgColor = function () {
         return "rgb(" + this.color.r * 255 + "," + this.color.g * 255 + "," + this.color.b * 255 + ")";
     };
     Plane.prototype.randomColor = function () {
-        var numParents = 0.3;
+        var numParents = 0.2;
         var parent = this;
         while (parent = parent.parent) {
-            numParents += .1;
+            numParents += .2;
         }
-        console.log(numParents);
         switch (this.orientation) {
             case OrientationKind.Horizontal:
                 return new __WEBPACK_IMPORTED_MODULE_0_three__["b" /* Color */](this.randomBetween(20, 20) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255);
             case OrientationKind.Vertical:
-                return new __WEBPACK_IMPORTED_MODULE_0_three__["b" /* Color */](this.randomBetween(255 * numParents, 255 * numParents) / 255, this.randomBetween(20, 20) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255);
+                return new __WEBPACK_IMPORTED_MODULE_0_three__["b" /* Color */](this.randomBetween(255 * numParents, 255 * numParents) / 255, this.randomBetween(0, 0) / 255, this.randomBetween(255 * numParents, 255 * numParents) / 255);
         }
     };
     Plane.prototype.randomBetween = function (min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
     };
     Plane.prototype.svgPoints = function () {
-        return this.points.map(function (p) {
+        return this.polygon.points.map(function (p) {
             return p.x + "," + p.y;
         }).join(" ");
+    };
+    Plane.prototype.equals = function (plane) {
+        return this.polygon.equal(plane.polygon);
+    };
+    Plane.prototype.cutBy = function (p) {
+        var cuts = __WEBPACK_IMPORTED_MODULE_3_polybooljs__["difference"]({
+            regions: [p.polygon.toArray()],
+            inverted: false
+        }, {
+            regions: [this.polygon.toArray()],
+            inverted: false
+        });
+        if (cuts.regions[0]) {
+            // console.log('cut a bitch', cuts);
+            var cutPoly = new __WEBPACK_IMPORTED_MODULE_2_polygon__(cuts.regions[0]);
+            // console.log(cutPoly)
+            p.polygon = cutPoly;
+            var newPlane = new Plane([], this.orientation, this.parent);
+            newPlane.polygon = cutPoly;
+            // return newPlane;
+        }
+        return this;
     };
     return Plane;
 }());
@@ -461,7 +493,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/sketch/sketch.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<div id=\"paper\">\n  <svg style=\"width: 100%; height: 100%;\" (mousedown)=\"handleMouseDown($event)\" (mouseup)=\"handleMouseUp($event)\" (mousemove)=\"handleMove($event)\">\n    <svg:g [attr.id]=\"i\" *ngFor=\"let feature of features()\">\n      <ng-container *ngFor=\"let plane of feature.planes()\">\n        <polygon [attr.points]=\"plane.svgPoints()\" [attr.fill]=\"plane.svgColor()\" style=\"stroke-width:2\" />\n      </ng-container>\n      <ng-container *ngFor=\"let edge of feature.edges()\">\n        <line [attr.x1]=\"edge.start.x\" [attr.y1]=\"edge.start.y\" [attr.x2]=\"edge.end.x\" [attr.y2]=\"edge.end.y\" [attr.stroke]=\"edge.color\"\n          style=\"stroke-width:2\" fill-rule=\"evenodd\" />\n      </ng-container>\n    </svg:g>\n  </svg>\n  <div id=\"threeD\">\n    <div #container></div>\n  </div>\n</div>"
+module.exports = "<div id=\"paper\">\n  <svg style=\"width: 100%; height: 100%;\" (mousedown)=\"handleMouseDown($event)\" (mouseup)=\"handleMouseUp($event)\" (mousemove)=\"handleMove($event)\">\n    <svg:g [attr.id]=\"i\" *ngFor=\"let feature of features()\">\n      <ng-container *ngFor=\"let plane of feature.planes()\">\n        <polygon [attr.points]=\"plane.svgPoints()\" [attr.fill]=\"plane.svgColor()\" fill-rule=\"evenodd\" style=\"stroke-width:2\" opacity=\"1.0\"/>\n      </ng-container>\n      <ng-container *ngFor=\"let edge of feature.edges()\">\n        <line [attr.x1]=\"edge.start.x\" [attr.y1]=\"edge.start.y\" [attr.x2]=\"edge.end.x\" [attr.y2]=\"edge.end.y\" [attr.stroke]=\"edge.color\"\n          style=\"stroke-width:2\" fill-rule=\"evenodd\" />\n      </ng-container>\n    </svg:g>\n  </svg>\n  <div id=\"threeD\">\n    <div #container></div>\n  </div>\n</div>"
 
 /***/ }),
 
@@ -511,6 +543,7 @@ var SketchComponent = (function () {
         this.currentFeature = new __WEBPACK_IMPORTED_MODULE_1_app_box_fold__["a" /* BoxFold */](p, p);
     };
     SketchComponent.prototype.handleMouseUp = function (e) {
+        // this.reDrawSketch();
         this.sketch3d.addFeature(this.currentFeature);
         this.previousFeatures.push(this.currentFeature);
         delete this.currentFeature;
@@ -536,10 +569,21 @@ var SketchComponent = (function () {
         }
     };
     SketchComponent.prototype.ngOnInit = function () {
+        // this.container = this.elementRef.nativeElement;
+        // this.sketch3d = new Sketch3d(_.flatten(this.features()), this.container);
+        // this.sketch3d.init();
+        // this.sketch3d.addFeature(this.previousFeatures[0]);
+        this.reDrawSketch();
+        // this.sketch3d.init();
+    };
+    SketchComponent.prototype.reDrawSketch = function () {
         this.container = this.elementRef.nativeElement;
         this.sketch3d = new __WEBPACK_IMPORTED_MODULE_5_app_sketch_sketch3d__["a" /* Sketch3d */](__WEBPACK_IMPORTED_MODULE_4_lodash__["flatten"](this.features()), this.container);
         this.sketch3d.init();
-        this.sketch3d.addFeature(this.previousFeatures[0]);
+        for (var _i = 0, _a = this.features(); _i < _a.length; _i++) {
+            var feature = _a[_i];
+            this.sketch3d.addFeature(feature);
+        }
     };
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["_3" /* ViewChild */])('container'),
@@ -568,8 +612,6 @@ var SketchComponent = (function () {
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Sketch3d; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_app_plane__ = __webpack_require__("../../../../../src/app/plane.ts");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three__ = __webpack_require__("../../../../three/build/three.module.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_lodash__ = __webpack_require__("../../../../lodash/lodash.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_lodash___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_lodash__);
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -580,7 +622,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-
 
 
 var Plane3d = (function (_super) {
@@ -598,57 +639,79 @@ var Sketch3d = (function () {
         this.direction = -1;
         this.features = features;
         this.container = container;
+        // this.container.innerHTML = "";
     }
     Sketch3d.prototype.addFeature = function (feature) {
+        console.log(feature);
         this.features.push(feature);
-        this.features = [feature];
-        var newPlanes = __WEBPACK_IMPORTED_MODULE_2_lodash__["flatten"](this.features.map(function (feature) { return feature.planes(); }));
+        // this.features = [feature]
+        var newPlanes = feature.planes();
         (_a = this.planes).push.apply(_a, newPlanes);
         for (var _i = 0, newPlanes_1 = newPlanes; _i < newPlanes_1.length; _i++) {
             var plane = newPlanes_1[_i];
-            var planeShape = new __WEBPACK_IMPORTED_MODULE_1_three__["j" /* Shape */]();
-            planeShape.moveTo(plane.points[0].x, -plane.points[0].y);
-            for (var _b = 0, _c = plane.points; _b < _c.length; _b++) {
-                var point = _c[_b];
-                planeShape.lineTo(point.x, -point.y);
-            }
-            var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
-            var geometry = new __WEBPACK_IMPORTED_MODULE_1_three__["d" /* ExtrudeGeometry */](planeShape, extrudeSettings);
-            var material = new __WEBPACK_IMPORTED_MODULE_1_three__["f" /* MeshPhongMaterial */]({ color: plane.color });
-            plane.mesh = new __WEBPACK_IMPORTED_MODULE_1_three__["e" /* Mesh */](geometry, material);
-            var s = plane.pivotPoint;
-            plane.mesh.position.set(-s.x, s.y, 0);
+            var p = this.plane2Dto3D(plane);
+            var s = p.pivotPoint;
             var pointGeo = new __WEBPACK_IMPORTED_MODULE_1_three__["k" /* SphereGeometry */](10);
-            var pointMesh = new __WEBPACK_IMPORTED_MODULE_1_three__["e" /* Mesh */](pointGeo, new __WEBPACK_IMPORTED_MODULE_1_three__["f" /* MeshPhongMaterial */]({ color: plane.color }));
-            pointMesh.position.set(s.x, -s.y, 0);
-            plane.pivot = pointMesh;
-            // console.log(plane.pivot.getWorldPosition());
-            //   pointMesh.position.set(0,0, 0).multiplyScalar(scalingFactor);
-            //   (plane.parent as Plane3d).mesh.add(pointMesh)
-            // }
-            // else{
-            this.scene.add(pointMesh);
-            // }
-            pointMesh.add(plane.mesh);
+            var pointMesh = new __WEBPACK_IMPORTED_MODULE_1_three__["e" /* Mesh */](pointGeo, new __WEBPACK_IMPORTED_MODULE_1_three__["f" /* MeshPhongMaterial */]({ color: p.color, transparent: true, opacity: 0.3 }));
+            p.pivot = pointMesh;
+            if (plane.parent) {
+                var parent_1 = plane.parent;
+                var totalParentOffset = new __WEBPACK_IMPORTED_MODULE_1_three__["l" /* Vector2 */](0, 0);
+                while (parent_1) {
+                    totalParentOffset.x += parent_1.pivotPoint.x;
+                    totalParentOffset.y += parent_1.pivotPoint.y;
+                    parent_1 = parent_1.parent;
+                }
+                pointMesh.position.set(s.x - p.parent.pivotPoint.x, -s.y + p.parent.pivotPoint.y, 0);
+                // p.mesh.position.set(-s.x, s.y, 0);
+                p.parent.pivot.add(p.pivot);
+                p.pivot.add(p.mesh);
+            }
+            else {
+                // p.mesh.position.set(-s.x, s.y, 0);
+                pointMesh.position.set(s.x, -s.y, 0);
+                this.scene.add(pointMesh);
+                pointMesh.add(plane.mesh);
+            }
         }
-        if (this.planes.length === 6) {
-            // calculate parent offset
-            // child plane test
-            var childPlane = new __WEBPACK_IMPORTED_MODULE_1_three__["j" /* Shape */]();
-            childPlane.moveTo(30, -30);
-            childPlane.lineTo(30, -200);
-            childPlane.lineTo(200, -200);
-            childPlane.lineTo(200, -30);
-            childPlane.lineTo(30, -30);
-            var geometry = new __WEBPACK_IMPORTED_MODULE_1_three__["d" /* ExtrudeGeometry */](childPlane, extrudeSettings);
-            var material = new __WEBPACK_IMPORTED_MODULE_1_three__["f" /* MeshPhongMaterial */]({ color: "#FF0000" });
-            var childPlaneMesh = new __WEBPACK_IMPORTED_MODULE_1_three__["e" /* Mesh */](geometry, material);
-            // this.planes[1].pivot.getWorldPosition();    
-            var pivotPos = this.planes[5].pivotPoint;
-            childPlaneMesh.position.set(-pivotPos.x, pivotPos.y, 0);
-            this.planes[5].pivot.add(childPlaneMesh);
+        console.log(this.planes);
+        console.log(this.planes);
+        for (var _b = 0, newPlanes_2 = newPlanes; _b < newPlanes_2.length; _b++) {
+            var plane = newPlanes_2[_b];
+            for (var _c = 0, _d = this.planes; _c < _d.length; _c++) {
+                var p3 = _d[_c];
+                plane.cutBy(p3);
+                if (p3.points.length > 4) {
+                    p3.pivot.remove(p3.mesh);
+                    var p3New = this.plane2Dto3D(p3);
+                    var s = p3.pivotPoint;
+                    p3.pivot.add(p3.mesh);
+                }
+                // if(){
+                // }
+            }
         }
+        // }
+        this.setPlanePositions();
         var _a;
+    };
+    Sketch3d.prototype.plane2Dto3D = function (plane) {
+        var plane3d = plane;
+        var planeShape = new __WEBPACK_IMPORTED_MODULE_1_three__["j" /* Shape */]();
+        planeShape.moveTo(plane.points[0].x, -plane.points[0].y);
+        for (var _i = 0, _a = plane.points; _i < _a.length; _i++) {
+            var point = _a[_i];
+            planeShape.lineTo(point.x, -point.y);
+        }
+        var extrudeSettings = { amount: 0.1, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+        var geometry = new __WEBPACK_IMPORTED_MODULE_1_three__["d" /* ExtrudeGeometry */](planeShape, extrudeSettings);
+        var material = new __WEBPACK_IMPORTED_MODULE_1_three__["f" /* MeshPhongMaterial */]({ color: plane.color });
+        plane3d.mesh = new __WEBPACK_IMPORTED_MODULE_1_three__["e" /* Mesh */](geometry, material);
+        var s = plane.pivotPoint;
+        // if(plane.feature){
+        plane3d.mesh.position.set(-s.x, s.y, 0);
+        // } 
+        return plane3d;
     };
     Sketch3d.prototype.init = function () {
         var screen = {
@@ -657,16 +720,16 @@ var Sketch3d = (function () {
         }, view = {
             angle: 45,
             aspect: screen.width / screen.height,
-            near: 0.1,
-            far: 10000
+            near: 1000,
+            far: 2500
         };
         this.scene = new __WEBPACK_IMPORTED_MODULE_1_three__["i" /* Scene */]();
         this.camera = new __WEBPACK_IMPORTED_MODULE_1_three__["g" /* PerspectiveCamera */](view.angle, view.aspect, view.near, view.far);
-        this.renderer = new __WEBPACK_IMPORTED_MODULE_1_three__["m" /* WebGLRenderer */]({ antialias: true });
+        this.renderer = new __WEBPACK_IMPORTED_MODULE_1_three__["n" /* WebGLRenderer */]({ antialias: false });
         this.scene.add(this.camera);
         this.scene.add(new __WEBPACK_IMPORTED_MODULE_1_three__["a" /* AxisHelper */](2));
         this.camera.position.set(1500, 0, 1500);
-        this.camera.lookAt(new __WEBPACK_IMPORTED_MODULE_1_three__["l" /* Vector3 */](0, 0, 0));
+        this.camera.lookAt(new __WEBPACK_IMPORTED_MODULE_1_three__["m" /* Vector3 */](0, 0, 0));
         this.renderer.setSize(screen.width, screen.height);
         this.container.appendChild(this.renderer.domElement);
         var light = new __WEBPACK_IMPORTED_MODULE_1_three__["h" /* PointLight */](0xffffff, 9, 2600);
@@ -687,15 +750,23 @@ var Sketch3d = (function () {
         if (Math.abs(this.accumulatedRotation) + 0.05 > Math.PI) {
             this.direction *= -1;
         }
+        this.setPlanePositions();
+    };
+    Sketch3d.prototype.setPlanePositions = function () {
+        console.log(this.planes);
         for (var _i = 0, _a = this.planes; _i < _a.length; _i++) {
             var plane = _a[_i];
-            console.log(plane.pivot.getWorldPosition());
-            switch (plane.orientation) {
-                case __WEBPACK_IMPORTED_MODULE_0_app_plane__["a" /* OrientationKind */].Vertical:
-                    break;
-                case __WEBPACK_IMPORTED_MODULE_0_app_plane__["a" /* OrientationKind */].Horizontal:
-                    plane.pivot.setRotationFromEuler(new __WEBPACK_IMPORTED_MODULE_1_three__["c" /* Euler */](this.accumulatedRotation, 0, 0));
-                    break;
+            if (plane.pivot) {
+                switch (plane.orientation) {
+                    case __WEBPACK_IMPORTED_MODULE_0_app_plane__["a" /* OrientationKind */].Vertical:
+                        if (plane.parent) {
+                            plane.pivot.setRotationFromEuler(new __WEBPACK_IMPORTED_MODULE_1_three__["c" /* Euler */](-this.accumulatedRotation, 0, 0));
+                        }
+                        break;
+                    case __WEBPACK_IMPORTED_MODULE_0_app_plane__["a" /* OrientationKind */].Horizontal:
+                        plane.pivot.setRotationFromEuler(new __WEBPACK_IMPORTED_MODULE_1_three__["c" /* Euler */](this.accumulatedRotation, 0, 0));
+                        break;
+                }
             }
         }
     };
